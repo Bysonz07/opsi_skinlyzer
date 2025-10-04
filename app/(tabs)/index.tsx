@@ -1,9 +1,16 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function HomeScreen() {
+    const router = useRouter();
+
+    const handleStartAnalysis = () => {
+        // Navigate to the analyze tab
+        router.push("/(tabs)/analyze");
+    };
+
     return (
         <View style={styles.container}>
             {/* Header */}
@@ -18,12 +25,10 @@ export default function HomeScreen() {
             </View>
 
             {/* Main Action */}
-            <Link href="/modal" asChild>
-                <TouchableOpacity style={styles.primaryButton}>
-                    <Feather name="camera" size={20} color="#fff" />
-                    <Text style={styles.primaryButtonText}>Start Analysis</Text>
-                </TouchableOpacity>
-            </Link>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleStartAnalysis}>
+                <Feather name="camera" size={20} color="#fff" />
+                <Text style={styles.primaryButtonText}>Start Analysis</Text>
+            </TouchableOpacity>
 
             {/* Features */}
             <View style={styles.features}>
@@ -122,7 +127,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         borderWidth: 1,
-        borderColor: "#f1f3f4",
+        borderColor: "#e5e7eb",
     },
     featureIcon: {
         width: 32,
