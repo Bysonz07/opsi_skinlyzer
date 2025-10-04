@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.bysonz07.opsi_skinlyzer"
+      "package": "com.opsiskinlyzer.opsi_skinlyzer"
     },
     "web": {
       "output": "static",
@@ -48,8 +48,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "5973c615-4872-455f-9779-3955e4432e45"
+        "projectId": "6434fd39-62df-48e9-bcbc-8b1e9c81212f"
       }
-    }
+    },
+    "owner": "opsiskinlyzer"
   }
 }
