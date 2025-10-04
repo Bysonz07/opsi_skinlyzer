@@ -8,7 +8,6 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import * as Progress from "react-native-progress";
 
 export default function TreatmentScreen() {
     const [activeTab, setActiveTab] = useState<"Treatments" | "Doctors" | "Schedule">("Treatments");
@@ -19,84 +18,81 @@ export default function TreatmentScreen() {
             dosage: "Apply thin layer",
             frequency: "Twice daily",
             duration: "2 weeks",
-            notes: "Apply to affected areas after cleansing. Avoid contact with eyes.",
+            notes: "Apply to affected areas after cleansing",
             completed: false,
         },
         {
             id: "2",
-            name: "Cetirizine (Antihistamine)",
+            name: "Cetirizine",
             dosage: "10mg",
             frequency: "Once daily",
             duration: "1 week",
-            notes: "Take with or without food. May cause drowsiness.",
+            notes: "Take with or without food",
+            completed: true,
+        },
+        // Add more treatments to test scrolling
+        {
+            id: "3",
+            name: "Moisturizing Lotion",
+            dosage: "Apply generously",
+            frequency: "Daily",
+            duration: "Ongoing",
+            notes: "Use fragrance-free moisturizer",
             completed: false,
         },
         {
-            id: "3",
-            name: "Moisturizing Routine",
-            dosage: "Use gentle moisturizer",
-            frequency: "Twice daily",
-            duration: "3 weeks",
-            notes: "Apply after washing face. Keeps skin hydrated.",
-            completed: false,
+            id: "4",
+            name: "Sunscreen SPF 50",
+            dosage: "Apply to exposed areas",
+            frequency: "Every 2 hours",
+            duration: "Ongoing",
+            notes: "Reapply after swimming or sweating",
+            completed: true,
         },
     ]);
 
-    const completedCount = treatments.filter((t) => t.completed).length;
+    const completedCount = treatments.filter(t => t.completed).length;
     const progress = completedCount / treatments.length;
 
     const toggleCompleted = (id: string) => {
-        setTreatments((prev) =>
-            prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-        );
+        setTreatments(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
     };
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+        >
             {/* Header */}
-            <Text style={styles.title}>Treatment Plan</Text>
-            <Text style={styles.subtitle}>for Skin Condition</Text>
+            <View style={styles.header}>
+                <Text style={styles.title}>Treatment Plan</Text>
+                <Text style={styles.subtitle}>Follow your personalized care routine</Text>
+            </View>
 
-            {/* Progress Section */}
+            {/* Progress */}
             <View style={styles.progressCard}>
                 <View style={styles.progressHeader}>
-                    <Text style={styles.progressText}>
-                        Treatment Progress
-                    </Text>
-                    <Text style={styles.progressCount}>
-                        {completedCount}/{treatments.length} completed
-                    </Text>
+                    <Text style={styles.progressText}>Treatment Progress</Text>
+                    <Text style={styles.progressCount}>{completedCount}/{treatments.length}</Text>
                 </View>
-                <Progress.Bar
-                    progress={progress}
-                    color="#111827"
-                    unfilledColor="#E5E7EB"
-                    borderWidth={0}
-                    height={8}
-                    borderRadius={8}
-                />
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+                </View>
                 <Text style={styles.progressNote}>
-                    Keep following your treatment plan for best results
+                    {progress === 1 ? '🎉 All treatments completed!' : 'Keep following your plan for best results'}
                 </Text>
             </View>
 
             {/* Tabs */}
-            <View style={styles.tabRow}>
+            <View style={styles.tabs}>
                 {["Treatments", "Doctors", "Schedule"].map((tab) => (
                     <TouchableOpacity
                         key={tab}
-                        style={[
-                            styles.tabButton,
-                            activeTab === tab && styles.tabButtonActive,
-                        ]}
+                        style={[styles.tab, activeTab === tab && styles.tabActive]}
                         onPress={() => setActiveTab(tab as any)}
                     >
-                        <Text
-                            style={[
-                                styles.tabText,
-                                activeTab === tab && styles.tabTextActive,
-                            ]}
-                        >
+                        <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
                             {tab}
                         </Text>
                     </TouchableOpacity>
@@ -105,56 +101,62 @@ export default function TreatmentScreen() {
 
             {/* Content */}
             {activeTab === "Treatments" ? (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Your Treatment Plan</Text>
-                    <Text style={styles.sectionSubtitle}>
-                        Follow these steps to improve your condition
-                    </Text>
-
-                    {treatments.map((t, index) => (
-                        <View key={t.id} style={styles.treatmentCard}>
-                            <View style={styles.cardHeader}>
-                                <View style={styles.numberCircle}>
-                                    <Text style={styles.numberText}>{index + 1}</Text>
+                <View style={styles.treatments}>
+                    {treatments.map((treatment, index) => (
+                        <View key={treatment.id} style={[
+                            styles.treatmentCard,
+                            treatment.completed && styles.treatmentCardCompleted
+                        ]}>
+                            <View style={styles.treatmentHeader}>
+                                <View style={styles.treatmentInfo}>
+                                    <View style={[
+                                        styles.number,
+                                        treatment.completed && styles.numberCompleted
+                                    ]}>
+                                        <Text style={[
+                                            styles.numberText,
+                                            treatment.completed && styles.numberTextCompleted
+                                        ]}>
+                                            {index + 1}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.treatmentDetails}>
+                                        <Text style={[
+                                            styles.treatmentName,
+                                            treatment.completed && styles.treatmentNameCompleted
+                                        ]}>
+                                            {treatment.name}
+                                        </Text>
+                                        <Text style={styles.treatmentMeta}>{treatment.dosage} • {treatment.frequency}</Text>
+                                    </View>
                                 </View>
-                                <Text style={styles.treatmentName}>{t.name}</Text>
                                 <Switch
-                                    value={t.completed}
-                                    onValueChange={() => toggleCompleted(t.id)}
-                                    thumbColor={t.completed ? "#111827" : "#E5E7EB"}
-                                    trackColor={{ true: "#D1D5DB", false: "#F3F4F6" }}
+                                    value={treatment.completed}
+                                    onValueChange={() => toggleCompleted(treatment.id)}
+                                    thumbColor={treatment.completed ? "#fff" : "#f8f9fa"}
+                                    trackColor={{ false: "#e9ecef", true: "#10b981" }}
                                 />
                             </View>
 
-                            <View style={styles.details}>
-                                <Text style={styles.detailLine}>
-                                    <Text style={styles.detailLabel}>Dosage: </Text>
-                                    {t.dosage}
-                                </Text>
-                                <Text style={styles.detailLine}>
-                                    <Text style={styles.detailLabel}>Frequency: </Text>
-                                    {t.frequency}
-                                </Text>
-                                <Text style={styles.detailLine}>
-                                    <Text style={styles.detailLabel}>Duration: </Text>
-                                    {t.duration}
-                                </Text>
-                            </View>
+                            {treatment.notes && (
+                                <View style={styles.notes}>
+                                    <Text style={styles.notesText}>{treatment.notes}</Text>
+                                </View>
+                            )}
 
-                            <View style={styles.notesBox}>
-                                <Text style={styles.notesText}>{t.notes}</Text>
-                            </View>
+                            <Text style={styles.duration}>Duration: {treatment.duration}</Text>
                         </View>
                     ))}
                 </View>
             ) : (
-                <View style={styles.placeholder}>
-                    <Ionicons name="information-circle-outline" size={32} color="#9CA3AF" />
-                    <Text style={styles.placeholderText}>
-                        {activeTab} section coming soon
-                    </Text>
+                <View style={styles.comingSoon}>
+                    <Ionicons name="construct" size={48} color="#ccc" />
+                    <Text style={styles.comingSoonText}>{activeTab} coming soon</Text>
                 </View>
             )}
+
+            {/* Bottom spacer for better scrolling */}
+            <View style={styles.bottomSpacer} />
         </ScrollView>
     );
 }
@@ -162,154 +164,185 @@ export default function TreatmentScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F9FAFB",
-        paddingHorizontal: 20,
-        paddingTop: 60,
+        backgroundColor: "#fff",
     },
-    title: {
-        fontSize: 24,
-        fontWeight: "700",
-        color: "#111827",
-        textAlign: "center",
+    scrollContent: {
+        paddingHorizontal: 24,
+        paddingTop: 80,
+        paddingBottom: 40, // Added bottom padding
     },
-    subtitle: {
-        fontSize: 14,
-        color: "#6B7280",
-        textAlign: "center",
+    header: {
         marginBottom: 24,
     },
+    title: {
+        fontSize: 28,
+        fontWeight: "700",
+        color: "#000",
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: "#666",
+    },
     progressCard: {
-        backgroundColor: "white",
-        borderRadius: 16,
+        backgroundColor: "#f0f9ff",
+        borderRadius: 12,
         padding: 16,
-        shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 1,
-        marginBottom: 20,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: "#e0f2fe",
     },
     progressHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginBottom: 8,
+        alignItems: "center",
+        marginBottom: 12,
     },
     progressText: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: "600",
-        color: "#111827",
+        color: "#0369a1",
     },
     progressCount: {
         fontSize: 14,
-        fontWeight: "500",
-        color: "#6B7280",
+        color: "#0c4a6e",
+        fontWeight: "600",
+    },
+    progressBar: {
+        height: 6,
+        backgroundColor: "#bae6fd",
+        borderRadius: 3,
+        overflow: "hidden",
+    },
+    progressFill: {
+        height: "100%",
+        backgroundColor: "#0284c7",
+        borderRadius: 3,
     },
     progressNote: {
         marginTop: 8,
         fontSize: 12,
-        color: "#6B7280",
+        color: "#0369a1",
+        fontStyle: "italic",
     },
-    tabRow: {
+    tabs: {
         flexDirection: "row",
-        backgroundColor: "#E5E7EB",
+        backgroundColor: "#f8f9fa",
         borderRadius: 12,
         padding: 4,
-        marginBottom: 16,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
     },
-    tabButton: {
+    tab: {
         flex: 1,
         alignItems: "center",
         paddingVertical: 8,
         borderRadius: 8,
     },
-    tabButtonActive: {
-        backgroundColor: "white",
+    tabActive: {
+        backgroundColor: "#000",
     },
     tabText: {
         fontSize: 14,
-        color: "#6B7280",
         fontWeight: "500",
+        color: "#666",
     },
     tabTextActive: {
-        color: "#111827",
+        color: "#fff",
         fontWeight: "600",
     },
-    section: {
-        marginBottom: 40,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#111827",
-        marginBottom: 4,
-        textAlign: "center",
-    },
-    sectionSubtitle: {
-        fontSize: 13,
-        color: "#6B7280",
-        marginBottom: 16,
-        textAlign: "center",
+    treatments: {
+        gap: 12,
+        marginBottom: 20,
     },
     treatmentCard: {
-        backgroundColor: "white",
-        borderRadius: 16,
+        backgroundColor: "#f8f9fa",
+        borderRadius: 12,
         padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 1,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
     },
-    cardHeader: {
+    treatmentCardCompleted: {
+        backgroundColor: "#f0fdf4",
+        borderColor: "#dcfce7",
+    },
+    treatmentHeader: {
         flexDirection: "row",
-        alignItems: "center",
         justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: 12,
     },
-    numberCircle: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: "#F3F4F6",
+    treatmentInfo: {
+        flexDirection: "row",
+        flex: 1,
+    },
+    number: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: "#000",
         alignItems: "center",
         justifyContent: "center",
-        marginRight: 8,
+        marginRight: 12,
+    },
+    numberCompleted: {
+        backgroundColor: "#10b981",
     },
     numberText: {
+        fontSize: 12,
         fontWeight: "600",
-        color: "#111827",
+        color: "#fff",
+    },
+    numberTextCompleted: {
+        color: "#fff",
+    },
+    treatmentDetails: {
+        flex: 1,
     },
     treatmentName: {
-        flex: 1,
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: "600",
-        color: "#111827",
+        color: "#000",
+        marginBottom: 4,
     },
-    details: {
-        marginTop: 8,
+    treatmentNameCompleted: {
+        color: "#065f46",
+        textDecorationLine: "line-through",
     },
-    detailLine: {
-        fontSize: 13,
-        color: "#374151",
+    treatmentMeta: {
+        fontSize: 14,
+        color: "#666",
     },
-    detailLabel: {
-        fontWeight: "600",
-    },
-    notesBox: {
-        backgroundColor: "#F3F4F6",
+    notes: {
+        backgroundColor: "#fff",
         borderRadius: 8,
-        padding: 10,
-        marginTop: 8,
+        padding: 12,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
     },
     notesText: {
-        fontSize: 13,
-        color: "#4B5563",
-    },
-    placeholder: {
-        marginTop: 60,
-        alignItems: "center",
-    },
-    placeholderText: {
-        color: "#9CA3AF",
-        marginTop: 8,
         fontSize: 14,
+        color: "#333",
+        lineHeight: 20,
+    },
+    duration: {
+        fontSize: 14,
+        color: "#666",
+        fontWeight: "500",
+    },
+    comingSoon: {
+        alignItems: "center",
+        paddingTop: 80,
+        paddingBottom: 80,
+    },
+    comingSoonText: {
+        fontSize: 16,
+        color: "#666",
+        marginTop: 16,
+    },
+    bottomSpacer: {
+        height: 20,
     },
 });

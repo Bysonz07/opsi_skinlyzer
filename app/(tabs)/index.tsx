@@ -4,123 +4,149 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      {/* Top section */}
-      <View style={styles.header}>
-        <Ionicons name="shield-outline" size={64} color="#fff" style={styles.iconBg} />
-        <Text style={styles.title}>Welcome to SkinAnalyzer</Text>
-        <Text style={styles.subtitle}>
-          Your personal AI-powered skin health companion
-        </Text>
-      </View>
+    return (
+        <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={styles.iconContainer}>
+                    <Ionicons name="shield" size={32} color="#fff" />
+                </View>
+                <Text style={styles.title}>SkinAnalyzer</Text>
+                <Text style={styles.subtitle}>
+                    AI-powered skin health analysis
+                </Text>
+            </View>
 
-      {/* Start Analysis Button */}
-      <Link href="/modal" asChild>
-        <TouchableOpacity style={styles.button}>
-          <Feather name="camera" size={18} color="#fff" />
-          <Text style={styles.buttonText}> Start Analysis </Text>
-        </TouchableOpacity>
-      </Link>
+            {/* Main Action */}
+            <Link href="/modal" asChild>
+                <TouchableOpacity style={styles.primaryButton}>
+                    <Feather name="camera" size={20} color="#fff" />
+                    <Text style={styles.primaryButtonText}>Start Analysis</Text>
+                </TouchableOpacity>
+            </Link>
 
+            {/* Features */}
+            <View style={styles.features}>
+                <View style={styles.feature}>
+                    <View style={[styles.featureIcon, { backgroundColor: '#6366f1' }]}>
+                        <Feather name="zap" size={20} color="#fff" />
+                    </View>
+                    <Text style={styles.featureTitle}>Instant Analysis</Text>
+                    <Text style={styles.featureDesc}>AI-powered skin condition detection</Text>
+                </View>
 
-      {/* Info text */}
-      <Text style={styles.infoText}>
-        Take a photo and get instant AI analysis with personalized treatment recommendations
-      </Text>
+                <View style={styles.feature}>
+                    <View style={[styles.featureIcon, { backgroundColor: '#10b981' }]}>
+                        <Feather name="clipboard" size={20} color="#fff" />
+                    </View>
+                    <Text style={styles.featureTitle}>Treatment Plans</Text>
+                    <Text style={styles.featureDesc}>Personalized care recommendations</Text>
+                </View>
 
-      {/* Feature Icons */}
-      <View style={styles.features}>
-        <View style={styles.featureItem}>
-          <Feather name="camera" size={28} color="#111" />
-          <Text style={styles.featureText}>Analyze</Text>
+                <View style={styles.feature}>
+                    <View style={[styles.featureIcon, { backgroundColor: '#f59e0b' }]}>
+                        <Feather name="trending-up" size={20} color="#fff" />
+                    </View>
+                    <Text style={styles.featureTitle}>Progress Tracking</Text>
+                    <Text style={styles.featureDesc}>Monitor your skin health journey</Text>
+                </View>
+            </View>
+
+            {/* Footer */}
+            <Text style={styles.footer}>
+                For informational purposes only. Consult a healthcare professional for medical advice.
+            </Text>
         </View>
-        <View style={styles.featureItem}>
-          <Feather name="edit-3" size={28} color="#111" />
-          <Text style={styles.featureText}>Treat</Text>
-        </View>
-        <View style={styles.featureItem}>
-          <Feather name="heart" size={28} color="#111" />
-          <Text style={styles.featureText}>Heal</Text>
-        </View>
-      </View>
-
-      {/* Footer disclaimer */}
-      <Text style={styles.footer}>
-        For informational purposes only. Always consult a healthcare professional for medical advice.
-      </Text>
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  iconBg: {
-    backgroundColor: "#111",
-    borderRadius: 50,
-    padding: 20,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#111",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginTop: 4,
-  },
-  button: {
-    flexDirection: "row",
-    backgroundColor: "#111",
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  infoText: {
-    color: "#666",
-    fontSize: 13,
-    textAlign: "center",
-    marginVertical: 20,
-    paddingHorizontal: 30,
-  },
-  features: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginBottom: 20,
-  },
-  featureItem: {
-    alignItems: "center",
-  },
-  featureText: {
-    marginTop: 6,
-    fontSize: 13,
-    color: "#111",
-  },
-  footer: {
-    fontSize: 11,
-    color: "#888",
-    textAlign: "center",
-    marginTop: 30,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingHorizontal: 24,
+        paddingTop: 80,
+        paddingBottom: 40,
+    },
+    header: {
+        alignItems: "center",
+        marginBottom: 60,
+    },
+    iconContainer: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: "#000",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 16,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: "700",
+        color: "#000",
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: "#666",
+        textAlign: "center",
+    },
+    primaryButton: {
+        flexDirection: "row",
+        backgroundColor: "#000",
+        paddingVertical: 16,
+        paddingHorizontal: 24,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 40,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    primaryButtonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "600",
+        marginLeft: 8,
+    },
+    features: {
+        gap: 16,
+        marginBottom: 40,
+    },
+    feature: {
+        backgroundColor: "#f8f9fa",
+        borderRadius: 12,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
+    },
+    featureIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    featureTitle: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#000",
+        marginBottom: 4,
+    },
+    featureDesc: {
+        fontSize: 14,
+        color: "#666",
+        lineHeight: 20,
+    },
+    footer: {
+        fontSize: 12,
+        color: "#999",
+        textAlign: "center",
+        lineHeight: 16,
+    },
 });

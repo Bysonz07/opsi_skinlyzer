@@ -1,215 +1,275 @@
 import React from "react";
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
+import {
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 
 export default function ProfileScreen() {
-  const [reminderEnabled, setReminderEnabled] = React.useState(true);
+    const [reminderEnabled, setReminderEnabled] = React.useState(true);
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>Manage your account and preferences</Text>
+    return (
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+        >
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.title}>Profile</Text>
+                <Text style={styles.subtitle}>Manage your account and preferences</Text>
+            </View>
 
-      {/* Profile Card */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>JD</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.name}>John Doe</Text>
-          <Text style={styles.email}>john.doe@email.com</Text>
-          <View style={styles.memberBadge}>
-            <Text style={styles.memberText}>Premium Member</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.editIcon}>
-          <Text style={styles.editIconText}>✏️</Text>
-        </TouchableOpacity>
-      </View>
+            {/* Profile Card */}
+            <View style={styles.profileCard}>
+                <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>JD</Text>
+                </View>
+                <View style={styles.profileInfo}>
+                    <Text style={styles.name}>John Doe</Text>
+                    <Text style={styles.email}>john.doe@email.com</Text>
+                    <View style={styles.badge}>
+                        <Text style={styles.badgeText}>Premium Member</Text>
+                    </View>
+                </View>
+                <TouchableOpacity style={styles.editButton}>
+                    <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+            </View>
 
-      {/* Personal Information */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Personal Information</Text>
-        <Text style={styles.cardSubtitle}>Your basic profile information</Text>
+            {/* Personal Info */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Personal Information</Text>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Full Name</Text>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoValue}>John Doe</Text>
-          </View>
-        </View>
+                <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>Full Name</Text>
+                    <View style={styles.fieldValue}>
+                        <Text style={styles.fieldText}>John Doe</Text>
+                    </View>
+                </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Email</Text>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoValue}>john.doe@email.com</Text>
-          </View>
-        </View>
+                <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>Email</Text>
+                    <View style={styles.fieldValue}>
+                        <Text style={styles.fieldText}>john.doe@email.com</Text>
+                    </View>
+                </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Phone</Text>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoValue}>+1 (555) 123-4567</Text>
-          </View>
-        </View>
+                <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>Phone</Text>
+                    <View style={styles.fieldValue}>
+                        <Text style={styles.fieldText}>+1 (555) 123-4567</Text>
+                    </View>
+                </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Skin Type</Text>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoValue}>Sensitive</Text>
-          </View>
-        </View>
-      </View>
+                <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>Skin Type</Text>
+                    <View style={styles.fieldValue}>
+                        <Text style={styles.fieldText}>Sensitive</Text>
+                    </View>
+                </View>
+            </View>
 
-      {/* Notification Settings */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Notification Settings</Text>
-        <Text style={styles.cardSubtitle}>Manage how you receive updates</Text>
+            {/* Settings */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Notification Settings</Text>
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Treatment Reminders</Text>
-          <Switch
-            value={reminderEnabled}
-            onValueChange={setReminderEnabled}
-            thumbColor={reminderEnabled ? "#2563EB" : "#E5E7EB"}
-            trackColor={{ true: "#BFDBFE", false: "#D1D5DB" }}
-          />
-        </View>
-      </View>
-    </ScrollView>
-  );
+                <View style={styles.setting}>
+                    <View>
+                        <Text style={styles.settingLabel}>Treatment Reminders</Text>
+                        <Text style={styles.settingDescription}>Get reminders for your treatment schedule</Text>
+                    </View>
+                    <Switch
+                        value={reminderEnabled}
+                        onValueChange={setReminderEnabled}
+                        thumbColor={reminderEnabled ? "#fff" : "#f8f9fa"}
+                        trackColor={{ false: "#e9ecef", true: "#6366f1" }}
+                    />
+                </View>
+            </View>
+
+            {/* Actions */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Account Actions</Text>
+
+                <TouchableOpacity style={[styles.actionButton, styles.primaryAction]}>
+                    <Text style={styles.primaryActionText}>Upgrade to Premium</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.actionButton, styles.secondaryAction]}>
+                    <Text style={styles.secondaryActionText}>Contact Support</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Bottom spacer */}
+            <View style={styles.bottomSpacer} />
+        </ScrollView>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  scrollContainer: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  profileCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#111827",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  avatarText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 18,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  email: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  memberBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#E0E7FF",
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  memberText: {
-    fontSize: 12,
-    color: "#1E40AF",
-    fontWeight: "600",
-  },
-  editIcon: {
-    marginLeft: 8,
-  },
-  editIconText: {
-    fontSize: 16,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 2,
-  },
-  cardSubtitle: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginBottom: 12,
-  },
-  infoRow: {
-    marginBottom: 10,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  infoBox: {
-    backgroundColor: "#F3F4F6",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: "#111827",
-  },
-  switchRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  switchLabel: {
-    fontSize: 14,
-    color: "#111827",
-    fontWeight: "500",
-  },
+    container: {
+        flex: 1,
+        backgroundColor: "#fff",
+    },
+    scrollContent: {
+        paddingHorizontal: 24,
+        paddingTop: 80,
+        paddingBottom: 40, // Ensure bottom padding
+    },
+    // ... rest of your styles remain the same
+    header: {
+        marginBottom: 24,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: "700",
+        color: "#000",
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: "#666",
+    },
+    profileCard: {
+        backgroundColor: "#f8f9fa",
+        borderRadius: 12,
+        padding: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
+    },
+    avatar: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: "#000",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 16,
+    },
+    avatarText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 18,
+    },
+    profileInfo: {
+        flex: 1,
+    },
+    name: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: "#000",
+        marginBottom: 4,
+    },
+    email: {
+        fontSize: 14,
+        color: "#666",
+        marginBottom: 8,
+    },
+    badge: {
+        alignSelf: "flex-start",
+        backgroundColor: "#f59e0b",
+        borderRadius: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+    },
+    badgeText: {
+        fontSize: 12,
+        color: "#fff",
+        fontWeight: "500",
+    },
+    editButton: {
+        backgroundColor: "#6366f1",
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+    },
+    editButtonText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "600",
+    },
+    section: {
+        backgroundColor: "#f8f9fa",
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: "#000",
+        marginBottom: 16,
+    },
+    field: {
+        marginBottom: 16,
+    },
+    fieldLabel: {
+        fontSize: 14,
+        color: "#666",
+        marginBottom: 8,
+    },
+    fieldValue: {
+        backgroundColor: "#fff",
+        borderRadius: 8,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
+    },
+    fieldText: {
+        fontSize: 16,
+        color: "#000",
+    },
+    setting: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    settingLabel: {
+        fontSize: 16,
+        color: "#000",
+        fontWeight: "500",
+        marginBottom: 2,
+    },
+    settingDescription: {
+        fontSize: 12,
+        color: "#666",
+    },
+    actionButton: {
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        marginBottom: 8,
+    },
+    primaryAction: {
+        backgroundColor: "#000",
+    },
+    secondaryAction: {
+        backgroundColor: "transparent",
+        borderWidth: 1,
+        borderColor: "#000",
+    },
+    primaryActionText: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "600",
+        textAlign: "center",
+    },
+    secondaryActionText: {
+        color: "#000",
+        fontSize: 14,
+        fontWeight: "600",
+        textAlign: "center",
+    },
+    bottomSpacer: {
+        height: 20,
+    },
 });

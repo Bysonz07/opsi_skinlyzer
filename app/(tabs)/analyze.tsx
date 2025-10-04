@@ -4,164 +4,207 @@ import React, { useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function AnalyzeScreen() {
-  const [imageUri, setImageUri] = useState<string | null>(null);
+    const [imageUri, setImageUri] = useState<string | null>(null);
 
-  // Open camera
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      alert("Camera permission is required!");
-      return;
-    }
+    const takePhoto = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+            alert("Camera permission is required!");
+            return;
+        }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 1,
-    });
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            quality: 1,
+        });
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
+        if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+        }
+    };
 
-  // Open gallery
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      quality: 1,
-    });
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            allowsEditing: true,
+            quality: 1,
+        });
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
+        if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+        }
+    };
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <Text style={styles.title}>Skin Analysis</Text>
-      <Text style={styles.subtitle}>
-        Upload or take a photo for AI-powered skin condition analysis
-      </Text>
+    return (
+        <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.title}>Skin Analysis</Text>
+                <Text style={styles.subtitle}>
+                    Upload or take a photo for AI analysis
+                </Text>
+            </View>
 
-      {/* Upload Card */}
-      <View style={styles.card}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.preview} />
-        ) : (
-          <View style={styles.iconWrapper}>
-            <Ionicons name="camera-outline" size={48} color="#A1A1AA" />
-          </View>
-        )}
+            {/* Upload Area */}
+            <View style={styles.uploadCard}>
+                {imageUri ? (
+                    <Image source={{ uri: imageUri }} style={styles.preview} />
+                ) : (
+                    <View style={styles.uploadPlaceholder}>
+                        <Ionicons name="camera-outline" size={48} color="#999" />
+                        <Text style={styles.uploadText}>No image selected</Text>
+                    </View>
+                )}
 
-        <Text style={styles.cardTitle}>Upload Skin Image</Text>
-        <Text style={styles.cardSubtitle}>
-          Take a clear photo of the affected area
-        </Text>
+                <View style={styles.buttonRow}>
+                    <TouchableOpacity style={styles.button} onPress={takePhoto}>
+                        <Ionicons name="camera" size={20} color="#fff" />
+                        <Text style={styles.buttonText}>Take Photo</Text>
+                    </TouchableOpacity>
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.takePhotoBtn} onPress={takePhoto}>
-            <Ionicons name="camera" size={18} color="#fff" />
-            <Text style={styles.takePhotoText}>Take Photo</Text>
-          </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={pickImage}>
+                        <Ionicons name="image" size={20} color="#000" />
+                        <Text style={[styles.buttonText, styles.secondaryButtonText]}>Gallery</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
 
-          <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
-            <Ionicons name="cloud-upload-outline" size={18} color="#1F2937" />
-            <Text style={styles.uploadText}>Upload</Text>
-          </TouchableOpacity>
+            {/* Analysis Info */}
+            {imageUri && (
+                <View style={styles.analysisInfo}>
+                    <Text style={styles.analysisTitle}>Ready for Analysis</Text>
+                    <Text style={styles.analysisDesc}>
+                        Your image is ready for AI-powered skin condition analysis
+                    </Text>
+                    <TouchableOpacity style={styles.analyzeButton}>
+                        <Text style={styles.analyzeButtonText}>Analyze Skin</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
-      </View>
-    </View>
-  );
+    );
 }
 
-// ---- Styles ----
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 20,
-    paddingTop: 80,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 32,
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    paddingVertical: 32,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  iconWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#F3F4F6",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  preview: {
-    width: 150,
-    height: 150,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  cardSubtitle: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginTop: 4,
-    marginBottom: 24,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  takePhotoBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#111827",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    gap: 6,
-  },
-  takePhotoText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  uploadBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E5E7EB",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    gap: 6,
-  },
-  uploadText: {
-    color: "#1F2937",
-    fontWeight: "600",
-    fontSize: 14,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingHorizontal: 24,
+        paddingTop: 80,
+    },
+    header: {
+        marginBottom: 32,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: "700",
+        color: "#000",
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: "#666",
+    },
+    uploadCard: {
+        backgroundColor: "#f8f9fa",
+        borderRadius: 16,
+        padding: 24,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
+    },
+    uploadPlaceholder: {
+        width: 200,
+        height: 200,
+        borderRadius: 12,
+        backgroundColor: "#fff",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 24,
+        borderWidth: 2,
+        borderColor: "#e9ecef",
+        borderStyle: "dashed",
+    },
+    preview: {
+        width: 200,
+        height: 200,
+        borderRadius: 12,
+        marginBottom: 24,
+    },
+    uploadText: {
+        marginTop: 12,
+        fontSize: 14,
+        color: "#999",
+    },
+    buttonRow: {
+        flexDirection: "row",
+        gap: 12,
+        width: "100%",
+    },
+    button: {
+        flex: 1,
+        flexDirection: "row",
+        backgroundColor: "#000",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    secondaryButton: {
+        backgroundColor: "#fff",
+        borderWidth: 1,
+        borderColor: "#000",
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "600",
+    },
+    secondaryButtonText: {
+        color: "#000",
+    },
+    analysisInfo: {
+        backgroundColor: "#f0f9ff",
+        borderRadius: 16,
+        padding: 20,
+        marginTop: 20,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#e0f2fe",
+    },
+    analysisTitle: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: "#0369a1",
+        marginBottom: 8,
+    },
+    analysisDesc: {
+        fontSize: 14,
+        color: "#0c4a6e",
+        textAlign: "center",
+        marginBottom: 16,
+        lineHeight: 20,
+    },
+    analyzeButton: {
+        backgroundColor: "#0284c7",
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        shadowColor: "#0284c7",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    analyzeButtonText: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "600",
+    },
 });
