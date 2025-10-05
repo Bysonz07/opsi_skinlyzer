@@ -1,62 +1,84 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     ScrollView,
     StyleSheet,
     Switch,
     Text,
     TouchableOpacity,
-    View
+    View,
+    ActivityIndicator, Alert
 } from "react-native";
+import { treatmentAPI } from "@/services/api";
 
 export default function TreatmentScreen() {
     const [activeTab, setActiveTab] = useState<"Treatments" | "Doctors" | "Schedule">("Treatments");
-    const [treatments, setTreatments] = useState([
-        {
-            id: "1",
-            name: "Hydrocortisone Cream 1%",
-            dosage: "Apply thin layer",
-            frequency: "Twice daily",
-            duration: "2 weeks",
-            notes: "Apply to affected areas after cleansing",
-            completed: false,
-        },
-        {
-            id: "2",
-            name: "Cetirizine",
-            dosage: "10mg",
-            frequency: "Once daily",
-            duration: "1 week",
-            notes: "Take with or without food",
-            completed: true,
-        },
-        // Add more treatments to test scrolling
-        {
-            id: "3",
-            name: "Moisturizing Lotion",
-            dosage: "Apply generously",
-            frequency: "Daily",
-            duration: "Ongoing",
-            notes: "Use fragrance-free moisturizer",
-            completed: false,
-        },
-        {
-            id: "4",
-            name: "Sunscreen SPF 50",
-            dosage: "Apply to exposed areas",
-            frequency: "Every 2 hours",
-            duration: "Ongoing",
-            notes: "Reapply after swimming or sweating",
-            completed: true,
-        },
-    ]);
+    const [treatments, setTreatments] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const loadTreatments = async () => {
+        try {
+            const treatmentsData = await treatmentAPI.getTreatments();
+            setTreatments(treatmentsData);
+        } catch (error) {
+            console.error('Failed to load treatments:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const toggleCompleted = async (id: string, currentStatus: boolean) => {
+        try {
+            // Update locally first for immediate UI feedback
+            setTreatments(prevTreatments =>
+                prevTreatments.map(treatment =>
+                    treatment.id === id
+                        ? { ...treatment, completed: !currentStatus }
+                        : treatment
+                )
+            );
+
+            // Then send to API
+            await treatmentAPI.updateTreatment(id, !currentStatus);
+
+            // Optional: Reload from API to ensure sync
+            // loadTreatments();
+
+        } catch (error: any) {
+            console.error('Failed to update treatment:', error);
+
+            // Revert local change if API call fails
+            setTreatments(prevTreatments =>
+                prevTreatments.map(treatment =>
+                    treatment.id === id
+                        ? { ...treatment, completed: currentStatus } // revert to original
+                        : treatment
+                )
+            );
+
+            // Show error to user
+            Alert.alert(
+                "Update Failed",
+                `Could not update treatment: ${error.response?.data?.detail || error.message}`
+            );
+        }
+    };
+
+    useEffect(() => {
+        loadTreatments();
+    }, []);
 
     const completedCount = treatments.filter(t => t.completed).length;
-    const progress = completedCount / treatments.length;
+    const progress = treatments.length > 0 ? completedCount / treatments.length : 0;
 
-    const toggleCompleted = (id: string) => {
-        setTreatments(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-    };
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#000" />
+                <Text style={styles.loadingText}>Loading treatments...</Text>
+            </View>
+        );
+    }
 
     return (
         <ScrollView
@@ -102,55 +124,65 @@ export default function TreatmentScreen() {
             {/* Content */}
             {activeTab === "Treatments" ? (
                 <View style={styles.treatments}>
-                    {treatments.map((treatment, index) => (
-                        <View key={treatment.id} style={[
-                            styles.treatmentCard,
-                            treatment.completed && styles.treatmentCardCompleted
-                        ]}>
-                            <View style={styles.treatmentHeader}>
-                                <View style={styles.treatmentInfo}>
-                                    <View style={[
-                                        styles.number,
-                                        treatment.completed && styles.numberCompleted
-                                    ]}>
-                                        <Text style={[
-                                            styles.numberText,
-                                            treatment.completed && styles.numberTextCompleted
+                    {treatments.length > 0 ? (
+                        treatments.map((treatment, index) => (
+                            <View key={treatment.id} style={[
+                                styles.treatmentCard,
+                                treatment.completed && styles.treatmentCardCompleted
+                            ]}>
+                                <View style={styles.treatmentHeader}>
+                                    <View style={styles.treatmentInfo}>
+                                        <View style={[
+                                            styles.number,
+                                            treatment.completed && styles.numberCompleted
                                         ]}>
-                                            {index + 1}
-                                        </Text>
+                                            <Text style={[
+                                                styles.numberText,
+                                                treatment.completed && styles.numberTextCompleted
+                                            ]}>
+                                                {index + 1}
+                                            </Text>
+                                        </View>
+                                        <View style={styles.treatmentDetails}>
+                                            <Text style={[
+                                                styles.treatmentName,
+                                                treatment.completed && styles.treatmentNameCompleted
+                                            ]}>
+                                                {treatment.name}
+                                            </Text>
+                                            <Text style={styles.treatmentMeta}>{treatment.dosage} • {treatment.frequency}</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.treatmentDetails}>
-                                        <Text style={[
-                                            styles.treatmentName,
-                                            treatment.completed && styles.treatmentNameCompleted
-                                        ]}>
-                                            {treatment.name}
-                                        </Text>
-                                        <Text style={styles.treatmentMeta}>{treatment.dosage} • {treatment.frequency}</Text>
-                                    </View>
+                                    <Switch
+                                        value={treatment.completed}
+                                        onValueChange={() => toggleCompleted(treatment.id, treatment.completed)}
+                                        thumbColor={treatment.completed ? "#fff" : "#f8f9fa"}
+                                        trackColor={{ false: "#e9ecef", true: "#10b981" }}
+                                    />
                                 </View>
-                                <Switch
-                                    value={treatment.completed}
-                                    onValueChange={() => toggleCompleted(treatment.id)}
-                                    thumbColor={treatment.completed ? "#fff" : "#f8f9fa"}
-                                    trackColor={{ false: "#e9ecef", true: "#10b981" }}
-                                />
+
+                                {treatment.notes && (
+                                    <View style={styles.notes}>
+                                        <Text style={styles.notesText}>{treatment.notes}</Text>
+                                    </View>
+                                )}
+
+                                <Text style={styles.duration}>Duration: {treatment.duration}</Text>
                             </View>
-
-                            {treatment.notes && (
-                                <View style={styles.notes}>
-                                    <Text style={styles.notesText}>{treatment.notes}</Text>
-                                </View>
-                            )}
-
-                            <Text style={styles.duration}>Duration: {treatment.duration}</Text>
+                        ))
+                    ) : (
+                        <View style={styles.emptyState}>
+                            <Ionicons name="clipboard-outline" size={48} color="#ccc" />
+                            <Text style={styles.emptyTitle}>No Treatments</Text>
+                            <Text style={styles.emptyText}>
+                                Your treatment plan will appear here after analysis.
+                            </Text>
                         </View>
-                    ))}
+                    )}
                 </View>
             ) : (
                 <View style={styles.comingSoon}>
-                    <Ionicons name="construct" size={48} color="#ccc" />
+                    <Ionicons name="construct-outline" size={48} color="#ccc" />
                     <Text style={styles.comingSoonText}>{activeTab} coming soon</Text>
                 </View>
             )}
@@ -169,7 +201,18 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingHorizontal: 24,
         paddingTop: 80,
-        paddingBottom: 40, // Added bottom padding
+        paddingBottom: 40,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: '#666',
     },
     header: {
         marginBottom: 24,
@@ -331,6 +374,23 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#666",
         fontWeight: "500",
+    },
+    emptyState: {
+        alignItems: "center",
+        padding: 40,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: "#666",
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: "#999",
+        textAlign: "center",
+        lineHeight: 20,
     },
     comingSoon: {
         alignItems: "center",

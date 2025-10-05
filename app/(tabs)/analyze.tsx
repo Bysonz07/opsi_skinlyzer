@@ -171,7 +171,7 @@ export default function CameraModal() {
                                 style={styles.secondaryButton}
                                 onPress={pickImage}
                             >
-                                <Ionicons name="images" size={20} color="#6366f1" />
+                                <Ionicons name="images" size={20} color="#000" />
                                 <Text style={styles.secondaryButtonText}>Choose from Gallery</Text>
                             </TouchableOpacity>
                         </View>
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     },
     primaryButton: {
         flexDirection: "row",
-        backgroundColor: "#6366f1",
+        backgroundColor: "#000",
         paddingVertical: 16,
         paddingHorizontal: 24,
         borderRadius: 12,
@@ -373,10 +373,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: 8,
         borderWidth: 1,
-        borderColor: "#6366f1",
+        borderColor: "#000",
     },
     secondaryButtonText: {
-        color: "#6366f1",
+        color: "#000",
         fontSize: 16,
         fontWeight: "600",
     },
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     },
     retakeButton: {
         flexDirection: "row",
-        backgroundColor: "#6366f1",
+        backgroundColor: "#000",
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 10,
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     },
     analyzeButton: {
         flexDirection: "row",
-        backgroundColor: "#10b981",
+        backgroundColor: "#6366f1",
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 10,

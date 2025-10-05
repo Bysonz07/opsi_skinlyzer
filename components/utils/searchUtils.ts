@@ -1,4 +1,10 @@
-// utils/searchUtils.ts
+/**
+ * Utility functions for search functionality
+ */
+
+/**
+ * Filter items based on search term and specified fields
+ */
 export const filterItems = <T>(
     items: T[],
     searchTerm: string,
@@ -21,13 +27,27 @@ export const filterItems = <T>(
     );
 };
 
+/**
+ * Debounce function to limit how often a function is called
+ */
 export const debounce = <T extends (...args: any[]) => any>(
     func: T,
     wait: number
 ): ((...args: Parameters<T>) => void) => {
     let timeout: number;
+
     return (...args: Parameters<T>) => {
         clearTimeout(timeout);
         timeout = setTimeout(() => func(...args), wait);
     };
+};
+
+/**
+ * Highlight search terms in text
+ */
+export const highlightText = (text: string, searchTerm: string): string => {
+    if (!searchTerm.trim()) return text;
+
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '**$1**');
 };
