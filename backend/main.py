@@ -219,7 +219,7 @@ mock_treatments = [
         frequency="Once daily",
         duration="1 week",
         notes="Take with or without food",
-        completed=True
+        completed=False
     ),
     TreatmentItem(
         id="3",
@@ -230,6 +230,7 @@ mock_treatments = [
         notes="Use fragrance-free moisturizer",
         completed=False
     )
+
 ]
 
 # =============================================================================

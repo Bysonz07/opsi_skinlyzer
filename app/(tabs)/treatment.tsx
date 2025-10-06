@@ -35,7 +35,7 @@ export default function TreatmentScreen() {
     const conditionTreatments: { [key: string]: Treatment[] } = {
         "akiec": [
             {
-                id: "a1",
+                id: "1",
                 name: "Fluorouracil Cream",
                 dosage: "Apply thin layer",
                 frequency: "Once daily",
@@ -46,7 +46,7 @@ export default function TreatmentScreen() {
                 priority: "high"
             },
             {
-                id: "a2",
+                id: "2",
                 name: "Sun Protection",
                 dosage: "SPF 50+",
                 frequency: "Daily",
@@ -59,7 +59,7 @@ export default function TreatmentScreen() {
         ],
         "bcc": [
             {
-                id: "b1",
+                id: "3",
                 name: "Dermatology Consultation",
                 dosage: "Professional assessment",
                 frequency: "Urgent",
@@ -72,7 +72,7 @@ export default function TreatmentScreen() {
         ],
         "mel": [
             {
-                id: "m1",
+                id: "4",
                 name: "Urgent Specialist Referral",
                 dosage: "Immediate consultation",
                 frequency: "ASAP",
@@ -85,7 +85,7 @@ export default function TreatmentScreen() {
         ],
         "nv": [
             {
-                id: "n1",
+                id: "5",
                 name: "Regular Monitoring",
                 dosage: "Self-examination",
                 frequency: "Monthly",
@@ -96,13 +96,13 @@ export default function TreatmentScreen() {
                 priority: "low"
             },
             {
-                id: "n2",
+                id: "6",
                 name: "Sun Protection",
                 dosage: "SPF 30+",
                 frequency: "Daily",
                 duration: "Ongoing",
                 notes: "Use sunscreen to prevent changes in moles",
-                completed: true,
+                completed: false,
                 condition: "nv",
                 priority: "medium"
             }
