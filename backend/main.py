@@ -16,26 +16,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-# Try to import ML dependencies, but make it optional
-try:
-    import torch
-    import torch.nn as nn
-    import timm
-    from torchvision import transforms
-    from PIL import Image
-    ML_AVAILABLE = True
-except ImportError:
-    print("⚠️  ML dependencies not available. Using mock mode.")
-    ML_AVAILABLE = False
-    torch = None
-    Image = None
+import torch
+import torch.nn as nn
+import timm
+from torchvision import transforms
+from PIL import Image
+ML_AVAILABLE = True
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
 # Model configuration
-MODEL_PATH = "models/skin_model.pth"  # Update this path to your model
+MODEL_PATH = "best_model_cnn.pth"  # Update this path to your model
 NUM_CLASSES = 7
 
 # Disease information
@@ -129,9 +122,6 @@ DISEASE_INFO = {
 # =============================================================================
 # MODEL LOADING (Optional)
 # =============================================================================
-
-model = None
-transform = None
 
 if ML_AVAILABLE:
     try:
@@ -459,4 +449,4 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8081, reload=True)

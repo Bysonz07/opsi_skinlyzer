@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {
     ScrollView,
     StyleSheet,
@@ -7,71 +7,202 @@ import {
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator, Alert
+    ActivityIndicator,
+    Alert,
+    RefreshControl
 } from "react-native";
 import { treatmentAPI } from "@/services/api";
 
-export default function TreatmentScreen() {
-    const [activeTab, setActiveTab] = useState<"Treatments" | "Doctors" | "Schedule">("Treatments");
-    const [treatments, setTreatments] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+interface Treatment {
+    id: string;
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    notes: string;
+    completed: boolean;
+    condition?: string;
+    priority?: "high" | "medium" | "low";
+}
 
+export default function TreatmentScreen() {
+    const [activeTab, setActiveTab] = useState<"Active" | "Completed" | "All">("Active");
+    const [treatments, setTreatments] = useState<Treatment[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    // Condition-specific treatment plans
+    const conditionTreatments: { [key: string]: Treatment[] } = {
+        "akiec": [
+            {
+                id: "a1",
+                name: "Fluorouracil Cream",
+                dosage: "Apply thin layer",
+                frequency: "Once daily",
+                duration: "2-4 weeks",
+                notes: "Apply to affected areas. May cause redness and peeling.",
+                completed: false,
+                condition: "akiec",
+                priority: "high"
+            },
+            {
+                id: "a2",
+                name: "Sun Protection",
+                dosage: "SPF 50+",
+                frequency: "Daily",
+                duration: "Ongoing",
+                notes: "Use broad-spectrum sunscreen on all exposed skin",
+                completed: false,
+                condition: "akiec",
+                priority: "medium"
+            }
+        ],
+        "bcc": [
+            {
+                id: "b1",
+                name: "Dermatology Consultation",
+                dosage: "Professional assessment",
+                frequency: "Urgent",
+                duration: "Immediate",
+                notes: "Schedule surgical consultation for lesion removal",
+                completed: false,
+                condition: "bcc",
+                priority: "high"
+            }
+        ],
+        "mel": [
+            {
+                id: "m1",
+                name: "Urgent Specialist Referral",
+                dosage: "Immediate consultation",
+                frequency: "ASAP",
+                duration: "Immediate",
+                notes: "Contact dermatologist for surgical evaluation",
+                completed: false,
+                condition: "mel",
+                priority: "high"
+            }
+        ],
+        "nv": [
+            {
+                id: "n1",
+                name: "Regular Monitoring",
+                dosage: "Self-examination",
+                frequency: "Monthly",
+                duration: "Lifelong",
+                notes: "Check for ABCDE changes: Asymmetry, Border, Color, Diameter, Evolution",
+                completed: false,
+                condition: "nv",
+                priority: "low"
+            },
+            {
+                id: "n2",
+                name: "Sun Protection",
+                dosage: "SPF 30+",
+                frequency: "Daily",
+                duration: "Ongoing",
+                notes: "Use sunscreen to prevent changes in moles",
+                completed: true,
+                condition: "nv",
+                priority: "medium"
+            }
+        ]
+    };
+
+    // Load treatments from API and merge with condition-specific treatments
     const loadTreatments = async () => {
         try {
-            const treatmentsData = await treatmentAPI.getTreatments();
-            setTreatments(treatmentsData);
+            setLoading(true);
+            const apiTreatments = await treatmentAPI.getTreatments();
+
+            // Merge API treatments with condition-specific treatments
+            const allTreatments = [
+                ...apiTreatments,
+                ...conditionTreatments["nv"], // Default to nevus treatments
+                ...conditionTreatments["akiec"] // Add some actinic keratosis treatments
+            ];
+
+            setTreatments(allTreatments);
         } catch (error) {
             console.error('Failed to load treatments:', error);
+            // Fallback to mock data
+            setTreatments([
+                ...conditionTreatments["nv"],
+                ...conditionTreatments["akiec"].slice(0, 1)
+            ]);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
     const toggleCompleted = async (id: string, currentStatus: boolean) => {
         try {
-            // Update locally first for immediate UI feedback
-            setTreatments(prevTreatments =>
-                prevTreatments.map(treatment =>
+            // Update locally first for immediate feedback
+            setTreatments(prev =>
+                prev.map(treatment =>
                     treatment.id === id
                         ? { ...treatment, completed: !currentStatus }
                         : treatment
                 )
             );
 
-            // Then send to API
+            // Send to API
             await treatmentAPI.updateTreatment(id, !currentStatus);
 
-            // Optional: Reload from API to ensure sync
-            // loadTreatments();
-
-        } catch (error: any) {
+        } catch (error) {
             console.error('Failed to update treatment:', error);
-
-            // Revert local change if API call fails
-            setTreatments(prevTreatments =>
-                prevTreatments.map(treatment =>
+            // Revert on error
+            setTreatments(prev =>
+                prev.map(treatment =>
                     treatment.id === id
-                        ? { ...treatment, completed: currentStatus } // revert to original
+                        ? { ...treatment, completed: currentStatus }
                         : treatment
                 )
             );
-
-            // Show error to user
-            Alert.alert(
-                "Update Failed",
-                `Could not update treatment: ${error.response?.data?.detail || error.message}`
-            );
+            Alert.alert("Error", "Failed to update treatment");
         }
     };
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        loadTreatments();
+    }, []);
 
     useEffect(() => {
         loadTreatments();
     }, []);
 
-    const completedCount = treatments.filter(t => t.completed).length;
-    const progress = treatments.length > 0 ? completedCount / treatments.length : 0;
+    // Filter treatments based on active tab
+    const filteredTreatments = treatments.filter(treatment => {
+        if (activeTab === "Active") return !treatment.completed;
+        if (activeTab === "Completed") return treatment.completed;
+        return true; // "All"
+    });
 
-    if (loading) {
+    const completedCount = treatments.filter(t => t.completed).length;
+    const totalCount = treatments.length;
+    const progress = totalCount > 0 ? completedCount / totalCount : 0;
+
+    const getPriorityColor = (priority?: string) => {
+        switch(priority) {
+            case "high": return "#ef4444";
+            case "medium": return "#f59e0b";
+            case "low": return "#10b981";
+            default: return "#6b7280";
+        }
+    };
+
+    const getPriorityIcon = (priority?: string) => {
+        switch(priority) {
+            case "high": return "alert-circle";
+            case "medium": return "warning";
+            case "low": return "checkmark-circle";
+            default: return "medical";
+        }
+    };
+
+    if (loading && treatments.length === 0) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#000" />
@@ -85,30 +216,34 @@ export default function TreatmentScreen() {
             style={styles.container}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
         >
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.title}>Treatment Plan</Text>
-                <Text style={styles.subtitle}>Follow your personalized care routine</Text>
+                <Text style={styles.subtitle}>Manage your skin care routine</Text>
             </View>
 
-            {/* Progress */}
+            {/* Progress Overview */}
             <View style={styles.progressCard}>
                 <View style={styles.progressHeader}>
                     <Text style={styles.progressText}>Treatment Progress</Text>
-                    <Text style={styles.progressCount}>{completedCount}/{treatments.length}</Text>
+                    <Text style={styles.progressCount}>{completedCount}/{totalCount}</Text>
                 </View>
                 <View style={styles.progressBar}>
                     <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
                 </View>
                 <Text style={styles.progressNote}>
-                    {progress === 1 ? '🎉 All treatments completed!' : 'Keep following your plan for best results'}
+                    {progress === 1 ? '🎉 All treatments completed!' :
+                        `Keep following your plan${completedCount > 0 ? ` - ${Math.round(progress * 100)}% done` : ''}`}
                 </Text>
             </View>
 
             {/* Tabs */}
             <View style={styles.tabs}>
-                {["Treatments", "Doctors", "Schedule"].map((tab) => (
+                {["Active", "Completed", "All"].map((tab) => (
                     <TouchableOpacity
                         key={tab}
                         style={[styles.tab, activeTab === tab && styles.tabActive]}
@@ -121,73 +256,99 @@ export default function TreatmentScreen() {
                 ))}
             </View>
 
-            {/* Content */}
-            {activeTab === "Treatments" ? (
-                <View style={styles.treatments}>
-                    {treatments.length > 0 ? (
-                        treatments.map((treatment, index) => (
-                            <View key={treatment.id} style={[
-                                styles.treatmentCard,
-                                treatment.completed && styles.treatmentCardCompleted
-                            ]}>
-                                <View style={styles.treatmentHeader}>
-                                    <View style={styles.treatmentInfo}>
-                                        <View style={[
-                                            styles.number,
-                                            treatment.completed && styles.numberCompleted
+            {/* Treatment List */}
+            <View style={styles.treatments}>
+                {filteredTreatments.length > 0 ? (
+                    filteredTreatments.map((treatment, index) => (
+                        <View key={treatment.id} style={[
+                            styles.treatmentCard,
+                            treatment.completed && styles.treatmentCardCompleted
+                        ]}>
+                            <View style={styles.treatmentHeader}>
+                                <View style={styles.treatmentInfo}>
+                                    {treatment.priority && (
+                                        <Ionicons
+                                            name={getPriorityIcon(treatment.priority)}
+                                            size={16}
+                                            color={getPriorityColor(treatment.priority)}
+                                            style={styles.priorityIcon}
+                                        />
+                                    )}
+                                    <View style={styles.treatmentDetails}>
+                                        <Text style={[
+                                            styles.treatmentName,
+                                            treatment.completed && styles.treatmentNameCompleted
                                         ]}>
-                                            <Text style={[
-                                                styles.numberText,
-                                                treatment.completed && styles.numberTextCompleted
-                                            ]}>
-                                                {index + 1}
-                                            </Text>
-                                        </View>
-                                        <View style={styles.treatmentDetails}>
-                                            <Text style={[
-                                                styles.treatmentName,
-                                                treatment.completed && styles.treatmentNameCompleted
-                                            ]}>
-                                                {treatment.name}
-                                            </Text>
-                                            <Text style={styles.treatmentMeta}>{treatment.dosage} • {treatment.frequency}</Text>
-                                        </View>
+                                            {treatment.name}
+                                        </Text>
+                                        <Text style={styles.treatmentMeta}>
+                                            {treatment.dosage} • {treatment.frequency}
+                                        </Text>
                                     </View>
-                                    <Switch
-                                        value={treatment.completed}
-                                        onValueChange={() => toggleCompleted(treatment.id, treatment.completed)}
-                                        thumbColor={treatment.completed ? "#fff" : "#f8f9fa"}
-                                        trackColor={{ false: "#e9ecef", true: "#10b981" }}
-                                    />
                                 </View>
+                                <Switch
+                                    value={treatment.completed}
+                                    onValueChange={() => toggleCompleted(treatment.id, treatment.completed)}
+                                    thumbColor={treatment.completed ? "#fff" : "#f8f9fa"}
+                                    trackColor={{ false: "#e9ecef", true: "#10b981" }}
+                                />
+                            </View>
 
-                                {treatment.notes && (
-                                    <View style={styles.notes}>
-                                        <Text style={styles.notesText}>{treatment.notes}</Text>
+                            {treatment.notes && (
+                                <View style={styles.notes}>
+                                    <Text style={styles.notesText}>{treatment.notes}</Text>
+                                </View>
+                            )}
+
+                            <View style={styles.treatmentFooter}>
+                                <View style={styles.duration}>
+                                    <Ionicons name="time-outline" size={14} color="#666" />
+                                    <Text style={styles.durationText}>{treatment.duration}</Text>
+                                </View>
+                                {treatment.condition && (
+                                    <View style={styles.conditionTag}>
+                                        <Text style={styles.conditionText}>
+                                            {treatment.condition.toUpperCase()}
+                                        </Text>
                                     </View>
                                 )}
-
-                                <Text style={styles.duration}>Duration: {treatment.duration}</Text>
                             </View>
-                        ))
-                    ) : (
-                        <View style={styles.emptyState}>
-                            <Ionicons name="clipboard-outline" size={48} color="#ccc" />
-                            <Text style={styles.emptyTitle}>No Treatments</Text>
-                            <Text style={styles.emptyText}>
-                                Your treatment plan will appear here after analysis.
-                            </Text>
                         </View>
-                    )}
-                </View>
-            ) : (
-                <View style={styles.comingSoon}>
-                    <Ionicons name="construct-outline" size={48} color="#ccc" />
-                    <Text style={styles.comingSoonText}>{activeTab} coming soon</Text>
-                </View>
-            )}
+                    ))
+                ) : (
+                    <View style={styles.emptyState}>
+                        <Ionicons
+                            name={activeTab === "Completed" ? "checkmark-done" : "clipboard-outline"}
+                            size={48}
+                            color="#ccc"
+                        />
+                        <Text style={styles.emptyTitle}>
+                            {activeTab === "Completed" ? "No completed treatments" : "No active treatments"}
+                        </Text>
+                        <Text style={styles.emptyText}>
+                            {activeTab === "Completed"
+                                ? "Complete some treatments to see them here"
+                                : "All treatments are completed! 🎉"}
+                        </Text>
+                    </View>
+                )}
+            </View>
 
-            {/* Bottom spacer for better scrolling */}
+            {/* Quick Actions */}
+            <View style={styles.quickActions}>
+                <Text style={styles.actionsTitle}>Quick Actions</Text>
+                <View style={styles.actionButtons}>
+                    <TouchableOpacity style={styles.actionButton}>
+                        <Ionicons name="add-circle" size={20} color="#000" />
+                        <Text style={styles.actionButtonText}>Add Treatment</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionButton}>
+                        <Ionicons name="notifications" size={20} color="#000" />
+                        <Text style={styles.actionButtonText}>Set Reminder</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <View style={styles.bottomSpacer} />
         </ScrollView>
     );
@@ -229,8 +390,8 @@ const styles = StyleSheet.create({
     },
     progressCard: {
         backgroundColor: "#f0f9ff",
-        borderRadius: 12,
-        padding: 16,
+        borderRadius: 16,
+        padding: 20,
         marginBottom: 24,
         borderWidth: 1,
         borderColor: "#e0f2fe",
@@ -252,18 +413,18 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     progressBar: {
-        height: 6,
+        height: 8,
         backgroundColor: "#bae6fd",
-        borderRadius: 3,
+        borderRadius: 4,
         overflow: "hidden",
+        marginBottom: 8,
     },
     progressFill: {
         height: "100%",
         backgroundColor: "#0284c7",
-        borderRadius: 3,
+        borderRadius: 4,
     },
     progressNote: {
-        marginTop: 8,
         fontSize: 12,
         color: "#0369a1",
         fontStyle: "italic",
@@ -296,13 +457,13 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     treatments: {
-        gap: 12,
-        marginBottom: 20,
+        gap: 16,
+        marginBottom: 24,
     },
     treatmentCard: {
         backgroundColor: "#f8f9fa",
-        borderRadius: 12,
-        padding: 16,
+        borderRadius: 16,
+        padding: 20,
         borderWidth: 1,
         borderColor: "#f1f3f4",
     },
@@ -319,26 +480,11 @@ const styles = StyleSheet.create({
     treatmentInfo: {
         flexDirection: "row",
         flex: 1,
+        alignItems: "flex-start",
     },
-    number: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: "#000",
-        alignItems: "center",
-        justifyContent: "center",
+    priorityIcon: {
         marginRight: 12,
-    },
-    numberCompleted: {
-        backgroundColor: "#10b981",
-    },
-    numberText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#fff",
-    },
-    numberTextCompleted: {
-        color: "#fff",
+        marginTop: 2,
     },
     treatmentDetails: {
         flex: 1,
@@ -367,13 +513,33 @@ const styles = StyleSheet.create({
     },
     notesText: {
         fontSize: 14,
-        color: "#333",
+        color: "#666",
         lineHeight: 20,
     },
+    treatmentFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
     duration: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    durationText: {
         fontSize: 14,
         color: "#666",
-        fontWeight: "500",
+    },
+    conditionTag: {
+        backgroundColor: "#e5e7eb",
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    conditionText: {
+        fontSize: 12,
+        color: "#374151",
+        fontWeight: "600",
     },
     emptyState: {
         alignItems: "center",
@@ -392,15 +558,40 @@ const styles = StyleSheet.create({
         textAlign: "center",
         lineHeight: 20,
     },
-    comingSoon: {
-        alignItems: "center",
-        paddingTop: 80,
-        paddingBottom: 80,
+    quickActions: {
+        backgroundColor: "#f8f9fa",
+        borderRadius: 16,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: "#f1f3f4",
     },
-    comingSoonText: {
+    actionsTitle: {
         fontSize: 16,
-        color: "#666",
-        marginTop: 16,
+        fontWeight: "600",
+        color: "#000",
+        marginBottom: 12,
+    },
+    actionButtons: {
+        flexDirection: "row",
+        gap: 12,
+    },
+    actionButton: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        backgroundColor: "#fff",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#e5e7eb",
+    },
+    actionButtonText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#000",
     },
     bottomSpacer: {
         height: 20,
