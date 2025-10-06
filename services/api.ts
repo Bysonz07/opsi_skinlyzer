@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 // API Configuration - UPDATE THIS WITH YOUR COMPUTER'S IP ADDRESS
-const API_BASE_URL = 'http://192.168.100.100:8081'; // ⚠️ Change this to your computer's IP!
+const API_BASE_URL = 'http://192.168.31.215:8081'; // ⚠️ Change this to your computer's IP!
 
 // Create axios instance
 export const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 15000, // 15 second timeout
+    timeout: 30000, // 30 second timeout
     headers: {
         'Content-Type': 'application/json',
     },
@@ -50,7 +50,9 @@ api.interceptors.response.use(
     }
 );
 
-// API Services
+// =============================================================================
+// API SERVICES
+// =============================================================================
 
 /**
  * Analysis API - For skin image analysis and history
@@ -79,7 +81,7 @@ export const analysisAPI = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-            timeout: 30000, // 30 seconds for image upload
+            timeout: 45000, // 45 seconds for image analysis
         });
 
         return response.data;
@@ -109,28 +111,13 @@ export const treatmentAPI = {
     },
 
     /**
-     * Update treatment completion status - CORRECTED VERSION
+     * Update treatment completion status
      */
     updateTreatment: async (treatmentId: string, completed: boolean) => {
-        try {
-            console.log(`🔄 API: Updating treatment ${treatmentId} to completed: ${completed}`);
-
-            // The backend expects a JSON object with the completed field
-            const response = await api.put(`/api/v1/treatments/${treatmentId}`, {
-                completed: completed
-            });
-
-            console.log('✅ API: Treatment update successful');
-            return response.data;
-
-        } catch (error: any) {
-            console.error('❌ API: Treatment update failed:', {
-                status: error.response?.status,
-                data: error.response?.data,
-                message: error.message
-            });
-            throw error;
-        }
+        const response = await api.put(`/api/v1/treatments/${treatmentId}`, {
+            completed,
+        });
+        return response.data;
     },
 };
 
@@ -161,8 +148,21 @@ export const healthAPI = {
 };
 
 /**
- * Utility functions
+ * Diseases API - For getting disease information
  */
+export const diseasesAPI = {
+    /**
+     * Get information about all detectable diseases
+     */
+    getAll: async () => {
+        const response = await api.get('/api/v1/diseases');
+        return response.data;
+    },
+};
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
 
 /**
  * Test the connection to the API server
@@ -209,15 +209,71 @@ Current API_BASE_URL: ${API_BASE_URL}
  */
 export const getAPIConfig = () => ({
     baseURL: API_BASE_URL,
-    isConfigured: API_BASE_URL !== 'http://192.168.100.100:8081',
+    isConfigured: API_BASE_URL !== 'http://192.168.31.215:8081',
 });
 
-// Default export
-export default {
-    analysisAPI,
-    treatmentAPI,
-    userAPI,
-    healthAPI,
-    testConnection,
-    getAPIConfig,
+/**
+ * Format error message for user display
+ */
+export const formatErrorMessage = (error: any): string => {
+    if (error.response?.data?.detail) {
+        return error.response.data.detail;
+    }
+
+    if (error.code === 'ECONNREFUSED') {
+        return 'Cannot connect to server. Check your connection and server status.';
+    }
+
+    if (error.message?.includes('timeout')) {
+        return 'Request timed out. Please try again.';
+    }
+
+    return error.message || 'An unexpected error occurred';
 };
+
+// =============================================================================
+// TYPES (Optional - for better TypeScript support)
+// =============================================================================
+
+export interface AnalysisResult {
+    id: string;
+    condition: string;
+    condition_name: string;
+    confidence: number;
+    confidence_percentage: number;
+    severity: string;
+    description: string;
+    recommendations: string[];
+    timestamp: string;
+    model_used?: string;
+}
+
+export interface Treatment {
+    id: string;
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    notes: string;
+    completed: boolean;
+}
+
+export interface User {
+    id: string;
+    email: string;
+    name: string;
+    skin_type: string;
+}
+
+export interface DiseaseInfo {
+    code: string;
+    name: string;
+    description: string;
+    severity: string;
+    recommendations: string[];
+}
+
+// =============================================================================
+// DEFAULT EXPORT
+// =============================================================================
+
