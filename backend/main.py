@@ -10,11 +10,17 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
-
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from sqlalchemy.orm import Session
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+
+from database import get_db, engine
+from models import Base, User, Analysis
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 import torch
 import torch.nn as nn
@@ -31,15 +37,15 @@ ML_AVAILABLE = True
 
 # Model configuration
 MODEL_PATH = "best_model_cnn.pth"  # Update this path to your model
-MODEL_URL = "https://drive.google.com/uc?id=1LS0SCSye7PUrL1bL6qt4MOoxivxbRzX2"
+# MODEL_URL = "https://drive.google.com/uc?id=1LS0SCSye7PUrL1bL6qt4MOoxivxbRzX2"
 NUM_CLASSES = 7
 
-if not os.path.exists(MODEL_PATH):
-    print("Downloading from Google Drive")
-    gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
-    print("Download completed")
-else:
-    print("Model file already exists. Skipping download.")    
+# if not os.path.exists(MODEL_PATH):
+#     print("Downloading from Google Drive")
+#     gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+#     print("Download completed")
+# else:
+#     print("Model file already exists. Skipping download.")    
 
 # Disease information
 DISEASE_INFO = {
@@ -239,6 +245,33 @@ mock_treatments = [
         duration="Ongoing",
         notes="Use fragrance-free moisturizer",
         completed=False
+    ),
+    TreatmentItem(
+        id="4",
+        name="Urgent Specialist Referral",
+        dosage="Immediate consultation",
+        frequency="ASAP",
+        duration="Immediate",
+        notes="Contact dermatologist for surgical evaluation",
+        completed=False
+    ),
+    TreatmentItem(
+        id="5",
+        name="Sun Protection",
+        dosage="Use suncreen to prevent changes in moles",
+        frequency="Daily",
+        duration="Ongoing",
+        notes="Use fragrance-free moisturizer",
+        completed=False
+    ),
+    TreatmentItem(
+       id= "6",
+        name= "Sun Protection",
+        dosage= "SPF 30+",
+        frequency= "Daily",
+        duration= "Ongoing",
+        notes= "Use sunscreen to prevent changes in moles",
+        completed=False
     )
 
 ]
@@ -342,8 +375,12 @@ async def get_treatments():
 @app.put("/api/v1/treatments/{treatment_id}")
 async def update_treatment(treatment_id: str, update_data: TreatmentUpdate):
     """Update treatment completion status"""
+    # Extract the base ID from the prefixed treatment_id (e.g., "nv_5" -> "5")
+    base_id = treatment_id.split('_')[-1] if '_' in treatment_id else treatment_id
+    
     for treatment in mock_treatments:
-        if treatment.id == treatment_id:
+        # Compare with both the full ID and the base ID for compatibility
+        if treatment.id == treatment_id or treatment.id == base_id:
             treatment.completed = update_data.completed
             return treatment
     raise HTTPException(status_code=404, detail="Treatment not found")
@@ -363,7 +400,12 @@ async def get_diseases():
     }
 
 @app.post("/api/v1/analysis/upload")
-async def analyze_skin(image: UploadFile = File(...), metadata: str = Form("{}")):
+async def analyze_skin(
+    image: UploadFile = File(...),
+    metadata: str = Form("{}"),
+    user_id: str = Form(...),
+    db: Session = Depends(get_db)
+):
     """
     Analyze a skin image and return disease classification
     Works with both real model and mock data
@@ -410,26 +452,67 @@ async def analyze_skin(image: UploadFile = File(...), metadata: str = Form("{}")
         # Get disease information
         disease_info = DISEASE_INFO[pred_idx]
 
-        # Prepare response
-        analysis_id = str(uuid.uuid4())
+        # Check if user exists, create if not
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            user = User(id=user_id, email=f"{user_id}@example.com")  # You should get real email from Clerk
+            db.add(user)
+            db.commit()
 
-        response = {
-            "id": analysis_id,
-            "condition": disease_info["code"],
-            "condition_name": disease_info["name"],
-            "confidence": confidence,
-            "confidence_percentage": round(confidence * 100, 2),
-            "severity": disease_info["severity"],
-            "description": disease_info["description"],
-            "recommendations": disease_info["recommendations"],
-            "timestamp": datetime.now().isoformat(),
-            "model_used": "ML" if model else "Mock"
-        }
+        # Create analysis record
+        analysis_id = str(uuid.uuid4())
+        analysis = Analysis(
+            id=analysis_id,
+            user_id=user_id,
+            condition=disease_info["code"],
+            condition_name=disease_info["name"],
+            confidence=confidence,
+            severity=disease_info["severity"],
+            description=disease_info["description"],
+            recommendations=disease_info["recommendations"],
+            image_url=""  # You can implement image storage and add the URL here
+        )
+
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+
+        response = analysis.to_dict()
+        response["model_used"] = "ML" if model else "Mock"
 
         print(f"✅ Analysis complete: {disease_info['name']} ({confidence:.1%})")
 
         return response
+    except Exception as e:
+        print(f"❌ Error during analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/analysis/history")
+def get_analysis_history(
+    start: int = 0,
+    limit: int = 10,
+    user_id: str = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Get analysis history for a user
+    """
+    try:
+        query = db.query(Analysis)
+        
+        if user_id:
+            query = query.filter(Analysis.user_id == user_id)
+        
+        total = query.count()
+        analyses = query.order_by(Analysis.created_at.desc()).offset(start).limit(limit).all()
+        
+        results = [analysis.to_dict() for analysis in analyses]
+        
+        return {
+            "results": results,
+            "total": total,
+            "has_more": (start + limit) < total
+        }
     except HTTPException:
         raise
     except Exception as e:
