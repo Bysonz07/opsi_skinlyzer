@@ -1,19 +1,18 @@
+import { debounce } from "@/components/utils/searchUtils";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+    Alert,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
-    RefreshControl,
-    Alert
+    View
 } from "react-native";
-import { analysisAPI } from "@/services/api";
-import { debounce } from "@/components/utils/searchUtils";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 interface AnalysisResult {
     id: string;
     condition: string;
@@ -140,7 +139,7 @@ export default function HistoryScreen() {
     };
 
     const getSeverityIcon = (severity: string) => {
-        switch(severity) {
+        switch (severity) {
             case "Low": return "checkmark-circle";
             case "Medium": return "warning";
             case "High": return "alert-circle";
@@ -174,161 +173,163 @@ export default function HistoryScreen() {
     }
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-        >
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.title}>Analysis History</Text>
-                <Text style={styles.subtitle}>Your skin health journey</Text>
-            </View>
-
-            {/* Stats */}
-            <View style={styles.stats}>
-                <View style={styles.statCard}>
-                    <Ionicons name="document-text" size={20} color="#6366f1" />
-                    <View>
-                        <Text style={styles.statNumber}>{analyses.length}</Text>
-                        <Text style={styles.statLabel}>Total Analyses</Text>
-                    </View>
-                </View>
-                <View style={styles.statCard}>
-                    <Ionicons name="trending-up" size={20} color="#10b981" />
-                    <View>
-                        <Text style={styles.statNumber}>
-                            {analyses.filter(a => a.severity === "Low").length}
-                        </Text>
-                        <Text style={styles.statLabel}>Low Risk</Text>
-                    </View>
-                </View>
-            </View>
-
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-                <View style={styles.searchBar}>
-                    <Ionicons name="search-outline" size={20} color="#999" />
-                    <TextInput
-                        placeholder="Search conditions..."
-                        placeholderTextColor="#999"
-                        style={styles.searchInput}
-                        onChangeText={handleSearchChange}
-                    />
-                    {searchQuery ? (
-                        <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <Ionicons name="close-circle" size={20} color="#999" />
-                        </TouchableOpacity>
-                    ) : null}
-                </View>
-            </View>
-
-            {/* Filters */}
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["bottom"]}>
             <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.filters}
+                style={styles.container}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
             >
-                {["All", "Low", "Medium", "High", "Critical"].map((tab) => (
-                    <TouchableOpacity
-                        key={tab}
-                        style={[styles.filter, filter === tab && styles.filterActive]}
-                        onPress={() => setFilter(tab)}
-                    >
-                        <Text style={[styles.filterText, filter === tab && styles.filterTextActive]}>
-                            {tab}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-
-            {/* Search Results Info */}
-            {searchQuery && (
-                <View style={styles.searchInfo}>
-                    <Text style={styles.searchInfoText}>
-                        Found {filteredAnalyses.length} result{filteredAnalyses.length !== 1 ? 's' : ''} for &#34;{searchQuery}&#34;
-                    </Text>
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>Analysis History</Text>
+                    <Text style={styles.subtitle}>Your skin health journey</Text>
                 </View>
-            )}
 
-            {/* Analysis List */}
-            <View style={styles.list}>
-                {filteredAnalyses.length > 0 ? (
-                    filteredAnalyses.map((analysis) => (
-                        <TouchableOpacity
-                            key={analysis.id}
-                            style={styles.card}
-                            onPress={() => viewAnalysisDetails(analysis)}
-                        >
-                            <View style={styles.cardHeader}>
-                                <Text style={styles.condition}>{analysis.condition_name}</Text>
-                                <View style={[
-                                    styles.severity,
-                                    { backgroundColor: severityColors[analysis.severity as keyof typeof severityColors] }
-                                ]}>
-                                    <Ionicons
-                                        name={getSeverityIcon(analysis.severity)}
-                                        size={12}
-                                        color="#fff"
-                                    />
-                                    <Text style={styles.severityText}>{analysis.severity}</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.cardDetails}>
-                                <View style={styles.date}>
-                                    <Ionicons name="calendar-outline" size={14} color="#666" />
-                                    <Text style={styles.dateText}>{formatDate(analysis.timestamp)}</Text>
-                                </View>
-                                <View style={styles.confidence}>
-                                    <Ionicons name="analytics" size={14} color="#666" />
-                                    <Text style={styles.confidenceText}>{analysis.confidence_percentage}% confidence</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.progressBar}>
-                                <View
-                                    style={[
-                                        styles.progressFill,
-                                        {
-                                            width: `${analysis.confidence_percentage}%`,
-                                            backgroundColor: analysis.confidence_percentage > 80 ? '#10b981' :
-                                                analysis.confidence_percentage > 60 ? '#f59e0b' : '#ef4444'
-                                        }
-                                    ]}
-                                />
-                            </View>
-
-                            <Text style={styles.description} numberOfLines={2}>
-                                {analysis.description}
+                {/* Stats */}
+                <View style={styles.stats}>
+                    <View style={styles.statCard}>
+                        <Ionicons name="document-text" size={20} color="#6366f1" />
+                        <View>
+                            <Text style={styles.statNumber}>{analyses.length}</Text>
+                            <Text style={styles.statLabel}>Total Analyses</Text>
+                        </View>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Ionicons name="trending-up" size={20} color="#10b981" />
+                        <View>
+                            <Text style={styles.statNumber}>
+                                {analyses.filter(a => a.severity === "Low").length}
                             </Text>
+                            <Text style={styles.statLabel}>Low Risk</Text>
+                        </View>
+                    </View>
+                </View>
 
-                            <View style={styles.actions}>
-                                <TouchableOpacity
-                                    style={styles.viewButton}
-                                    onPress={() => viewAnalysisDetails(analysis)}
-                                >
-                                    <Text style={styles.viewButtonText}>View Details</Text>
-                                </TouchableOpacity>
-                            </View>
+                {/* Search Bar */}
+                <View style={styles.searchContainer}>
+                    <View style={styles.searchBar}>
+                        <Ionicons name="search-outline" size={20} color="#999" />
+                        <TextInput
+                            placeholder="Search conditions..."
+                            placeholderTextColor="#999"
+                            style={styles.searchInput}
+                            onChangeText={handleSearchChange}
+                        />
+                        {searchQuery ? (
+                            <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                <Ionicons name="close-circle" size={20} color="#999" />
+                            </TouchableOpacity>
+                        ) : null}
+                    </View>
+                </View>
+
+                {/* Filters */}
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.filters}
+                >
+                    {["All", "Low", "Medium", "High", "Critical"].map((tab) => (
+                        <TouchableOpacity
+                            key={tab}
+                            style={[styles.filter, filter === tab && styles.filterActive]}
+                            onPress={() => setFilter(tab)}
+                        >
+                            <Text style={[styles.filterText, filter === tab && styles.filterTextActive]}>
+                                {tab}
+                            </Text>
                         </TouchableOpacity>
-                    ))
-                ) : (
-                    <View style={styles.emptyState}>
-                        <Ionicons name="search-outline" size={48} color="#ccc" />
-                        <Text style={styles.emptyTitle}>No analyses found</Text>
-                        <Text style={styles.emptyText}>
-                            {searchQuery ? 'Try adjusting your search' : 'Your analysis history will appear here'}
+                    ))}
+                </ScrollView>
+
+                {/* Search Results Info */}
+                {searchQuery && (
+                    <View style={styles.searchInfo}>
+                        <Text style={styles.searchInfoText}>
+                            Found {filteredAnalyses.length} result{filteredAnalyses.length !== 1 ? 's' : ''} for &#34;{searchQuery}&#34;
                         </Text>
                     </View>
                 )}
-            </View>
 
-            <View style={styles.bottomSpacer} />
-        </ScrollView>
+                {/* Analysis List */}
+                <View style={styles.list}>
+                    {filteredAnalyses.length > 0 ? (
+                        filteredAnalyses.map((analysis) => (
+                            <TouchableOpacity
+                                key={analysis.id}
+                                style={styles.card}
+                                onPress={() => viewAnalysisDetails(analysis)}
+                            >
+                                <View style={styles.cardHeader}>
+                                    <Text style={styles.condition}>{analysis.condition_name}</Text>
+                                    <View style={[
+                                        styles.severity,
+                                        { backgroundColor: severityColors[analysis.severity as keyof typeof severityColors] }
+                                    ]}>
+                                        <Ionicons
+                                            name={getSeverityIcon(analysis.severity)}
+                                            size={12}
+                                            color="#fff"
+                                        />
+                                        <Text style={styles.severityText}>{analysis.severity}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.cardDetails}>
+                                    <View style={styles.date}>
+                                        <Ionicons name="calendar-outline" size={14} color="#666" />
+                                        <Text style={styles.dateText}>{formatDate(analysis.timestamp)}</Text>
+                                    </View>
+                                    <View style={styles.confidence}>
+                                        <Ionicons name="analytics" size={14} color="#666" />
+                                        <Text style={styles.confidenceText}>{analysis.confidence_percentage}% confidence</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.progressBar}>
+                                    <View
+                                        style={[
+                                            styles.progressFill,
+                                            {
+                                                width: `${analysis.confidence_percentage}%`,
+                                                backgroundColor: analysis.confidence_percentage > 80 ? '#10b981' :
+                                                    analysis.confidence_percentage > 60 ? '#f59e0b' : '#ef4444'
+                                            }
+                                        ]}
+                                    />
+                                </View>
+
+                                <Text style={styles.description} numberOfLines={2}>
+                                    {analysis.description}
+                                </Text>
+
+                                <View style={styles.actions}>
+                                    <TouchableOpacity
+                                        style={styles.viewButton}
+                                        onPress={() => viewAnalysisDetails(analysis)}
+                                    >
+                                        <Text style={styles.viewButtonText}>View Details</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </TouchableOpacity>
+                        ))
+                    ) : (
+                        <View style={styles.emptyState}>
+                            <Ionicons name="search-outline" size={48} color="#ccc" />
+                            <Text style={styles.emptyTitle}>No analyses found</Text>
+                            <Text style={styles.emptyText}>
+                                {searchQuery ? 'Try adjusting your search' : 'Your analysis history will appear here'}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+
+                <View style={styles.bottomSpacer} />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 

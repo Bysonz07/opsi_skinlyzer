@@ -116,19 +116,38 @@ export default function TreatmentScreen() {
             const apiTreatments = await treatmentAPI.getTreatments();
 
             // Merge API treatments with condition-specific treatments
+            // Ensure unique IDs by prefixing condition-specific treatments
+            const prefixedNvTreatments = conditionTreatments["nv"].map(t => ({
+                ...t,
+                id: `nv_${t.id}`
+            }));
+            const prefixedAkiecTreatments = conditionTreatments["akiec"].map(t => ({
+                ...t,
+                id: `akiec_${t.id}`
+            }));
+            
             const allTreatments = [
                 ...apiTreatments,
-                ...conditionTreatments["nv"], // Default to nevus treatments
-                ...conditionTreatments["akiec"] // Add some actinic keratosis treatments
+                ...prefixedNvTreatments,
+                ...prefixedAkiecTreatments
             ];
 
             setTreatments(allTreatments);
         } catch (error) {
             console.error('Failed to load treatments:', error);
             // Fallback to mock data
+            const prefixedNvTreatments = conditionTreatments["nv"].map(t => ({
+                ...t,
+                id: `nv_${t.id}`
+            }));
+            const prefixedAkiecTreatments = conditionTreatments["akiec"].slice(0, 1).map(t => ({
+                ...t,
+                id: `akiec_${t.id}`
+            }));
+            
             setTreatments([
-                ...conditionTreatments["nv"],
-                ...conditionTreatments["akiec"].slice(0, 1)
+                ...prefixedNvTreatments,
+                ...prefixedAkiecTreatments
             ]);
         } finally {
             setLoading(false);
