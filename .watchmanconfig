@@ -1,0 +1,10 @@
+{
+  "ignore_dirs": [
+    ".git",
+    "node_modules",
+    "backend/venv",
+    "backend/__pycache__",
+    "backend/model",
+    "backend"
+  ]
+}
