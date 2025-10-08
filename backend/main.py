@@ -19,6 +19,8 @@ from pydantic import BaseModel
 import torch
 import torch.nn as nn
 import timm
+import gdown
+import os
 from torchvision import transforms
 from PIL import Image
 ML_AVAILABLE = True
@@ -29,7 +31,15 @@ ML_AVAILABLE = True
 
 # Model configuration
 MODEL_PATH = "best_model_cnn.pth"  # Update this path to your model
+MODEL_URL = "https://drive.google.com/uc?id=1LS0SCSye7PUrL1bL6qt4MOoxivxbRzX2"
 NUM_CLASSES = 7
+
+if not os.path.exists(MODEL_PATH):
+    print("Downloading from Google Drive")
+    gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+    print("Download completed")
+else:
+    print("Model file already exists. Skipping download.")    
 
 # Disease information
 DISEASE_INFO = {

@@ -1,18 +1,20 @@
+import { analysisAPI } from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Image,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-    ActivityIndicator
+    View
 } from "react-native";
-import { analysisAPI } from "@/services/api";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AnalyzeScreen() {
     const router = useRouter();
@@ -76,73 +78,75 @@ export default function AnalyzeScreen() {
     };
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-        >
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.title}>Skin Analysis</Text>
-                <Text style={styles.subtitle}>
-                    Upload or take a photo for AI analysis
-                </Text>
-            </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["bottom"]}>
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>Skin Analysis</Text>
+                    <Text style={styles.subtitle}>
+                        Upload or take a photo for AI analysis
+                    </Text>
+                </View>
 
-            {/* Upload Area */}
-            <View style={styles.uploadCard}>
-                {imageUri ? (
-                    <Image source={{ uri: imageUri }} style={styles.preview} />
-                ) : (
-                    <View style={styles.uploadPlaceholder}>
-                        <Ionicons name="camera-outline" size={48} color="#999" />
-                        <Text style={styles.uploadText}>No image selected</Text>
+                {/* Upload Area */}
+                <View style={styles.uploadCard}>
+                    {imageUri ? (
+                        <Image source={{ uri: imageUri }} style={styles.preview} />
+                    ) : (
+                        <View style={styles.uploadPlaceholder}>
+                            <Ionicons name="camera-outline" size={48} color="#999" />
+                            <Text style={styles.uploadText}>No image selected</Text>
+                        </View>
+                    )}
+
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity style={styles.button} onPress={takePhoto}>
+                            <Ionicons name="camera" size={20} color="#fff" />
+                            <Text style={styles.buttonText}>Take Photo</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={pickImage}>
+                            <Ionicons name="image" size={20} color="#000" />
+                            <Text style={[styles.buttonText, styles.secondaryButtonText]}>Gallery</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Analysis Actions */}
+                {imageUri && (
+                    <View style={styles.analysisInfo}>
+                        <Text style={styles.analysisTitle}>Ready for Analysis</Text>
+                        <Text style={styles.analysisDesc}>
+                            Your image is ready for AI-powered skin condition analysis
+                        </Text>
+                        <TouchableOpacity
+                            style={[
+                                styles.analyzeButton,
+                                isAnalyzing && styles.analyzeButtonDisabled
+                            ]}
+                            onPress={analyzeSkin}
+                            disabled={isAnalyzing}
+                        >
+                            {isAnalyzing ? (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="small" color="#fff" />
+                                    <Text style={styles.analyzeButtonText}>Analyzing...</Text>
+                                </View>
+                            ) : (
+                                <Text style={styles.analyzeButtonText}>Analyze Skin</Text>
+                            )}
+                        </TouchableOpacity>
                     </View>
                 )}
 
-                <View style={styles.buttonRow}>
-                    <TouchableOpacity style={styles.button} onPress={takePhoto}>
-                        <Ionicons name="camera" size={20} color="#fff" />
-                        <Text style={styles.buttonText}>Take Photo</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={pickImage}>
-                        <Ionicons name="image" size={20} color="#000" />
-                        <Text style={[styles.buttonText, styles.secondaryButtonText]}>Gallery</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            {/* Analysis Actions */}
-            {imageUri && (
-                <View style={styles.analysisInfo}>
-                    <Text style={styles.analysisTitle}>Ready for Analysis</Text>
-                    <Text style={styles.analysisDesc}>
-                        Your image is ready for AI-powered skin condition analysis
-                    </Text>
-                    <TouchableOpacity
-                        style={[
-                            styles.analyzeButton,
-                            isAnalyzing && styles.analyzeButtonDisabled
-                        ]}
-                        onPress={analyzeSkin}
-                        disabled={isAnalyzing}
-                    >
-                        {isAnalyzing ? (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="small" color="#fff" />
-                                <Text style={styles.analyzeButtonText}>Analyzing...</Text>
-                            </View>
-                        ) : (
-                            <Text style={styles.analyzeButtonText}>Analyze Skin</Text>
-                        )}
-                    </TouchableOpacity>
-                </View>
-            )}
-
-            {/* Bottom spacer for better scrolling */}
-            <View style={styles.bottomSpacer} />
-        </ScrollView>
+                {/* Bottom spacer for better scrolling */}
+                <View style={styles.bottomSpacer} />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API Configuration - UPDATE THIS WITH YOUR COMPUTER'S IP ADDRESS
-const API_BASE_URL = 'http://192.168.100.100:8080'; // ⚠️ Change this to your computer's IP!
+const API_BASE_URL = 'https://excellent-simone-bysonz-4d563a3a.koyeb.app'; // ⚠️ Change this to your computer's IP!
 
 // Create axios instance
 export const api = axios.create({
@@ -209,7 +209,7 @@ Current API_BASE_URL: ${API_BASE_URL}
  */
 export const getAPIConfig = () => ({
     baseURL: API_BASE_URL,
-    isConfigured: API_BASE_URL !== 'http://192.168.100.100:8080',
+    isConfigured: API_BASE_URL !== 'https://excellent-simone-bysonz-4d563a3a.koyeb.app',
 });
 
 /**

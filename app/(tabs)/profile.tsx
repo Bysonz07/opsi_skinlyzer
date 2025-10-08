@@ -7,106 +7,109 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileScreen() {
     const [reminderEnabled, setReminderEnabled] = React.useState(true);
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-        >
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.title}>Profile</Text>
-                <Text style={styles.subtitle}>Manage your account and preferences</Text>
-            </View>
-
-            {/* Profile Card */}
-            <View style={styles.profileCard}>
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>JD</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["bottom"]}>
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>Profile</Text>
+                    <Text style={styles.subtitle}>Manage your account and preferences</Text>
                 </View>
-                <View style={styles.profileInfo}>
-                    <Text style={styles.name}>John Doe</Text>
-                    <Text style={styles.email}>john.doe@email.com</Text>
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>Premium Member</Text>
+
+                {/* Profile Card */}
+                <View style={styles.profileCard}>
+                    <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>JD</Text>
+                    </View>
+                    <View style={styles.profileInfo}>
+                        <Text style={styles.name}>John Doe</Text>
+                        <Text style={styles.email}>john.doe@email.com</Text>
+                        <View style={styles.badge}>
+                            <Text style={styles.badgeText}>Premium Member</Text>
+                        </View>
+                    </View>
+                    <TouchableOpacity style={styles.editButton}>
+                        <Text style={styles.editButtonText}>Edit</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Personal Info */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Personal Information</Text>
+
+                    <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>Full Name</Text>
+                        <View style={styles.fieldValue}>
+                            <Text style={styles.fieldText}>John Doe</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>Email</Text>
+                        <View style={styles.fieldValue}>
+                            <Text style={styles.fieldText}>john.doe@email.com</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>Phone</Text>
+                        <View style={styles.fieldValue}>
+                            <Text style={styles.fieldText}>+1 (555) 123-4567</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>Skin Type</Text>
+                        <View style={styles.fieldValue}>
+                            <Text style={styles.fieldText}>Sensitive</Text>
+                        </View>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.editButton}>
-                    <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-            </View>
 
-            {/* Personal Info */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Personal Information</Text>
+                {/* Settings */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Notification Settings</Text>
 
-                <View style={styles.field}>
-                    <Text style={styles.fieldLabel}>Full Name</Text>
-                    <View style={styles.fieldValue}>
-                        <Text style={styles.fieldText}>John Doe</Text>
+                    <View style={styles.setting}>
+                        <View>
+                            <Text style={styles.settingLabel}>Treatment Reminders</Text>
+                            <Text style={styles.settingDescription}>Get reminders for your treatment schedule</Text>
+                        </View>
+                        <Switch
+                            value={reminderEnabled}
+                            onValueChange={setReminderEnabled}
+                            thumbColor={reminderEnabled ? "#fff" : "#f8f9fa"}
+                            trackColor={{ false: "#e9ecef", true: "#6366f1" }}
+                        />
                     </View>
                 </View>
 
-                <View style={styles.field}>
-                    <Text style={styles.fieldLabel}>Email</Text>
-                    <View style={styles.fieldValue}>
-                        <Text style={styles.fieldText}>john.doe@email.com</Text>
-                    </View>
+                {/* Actions */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Account Actions</Text>
+
+                    <TouchableOpacity style={[styles.actionButton, styles.primaryAction]}>
+                        <Text style={styles.primaryActionText}>Upgrade to Premium</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.actionButton, styles.secondaryAction]}>
+                        <Text style={styles.secondaryActionText}>Contact Support</Text>
+                    </TouchableOpacity>
                 </View>
 
-                <View style={styles.field}>
-                    <Text style={styles.fieldLabel}>Phone</Text>
-                    <View style={styles.fieldValue}>
-                        <Text style={styles.fieldText}>+1 (555) 123-4567</Text>
-                    </View>
-                </View>
-
-                <View style={styles.field}>
-                    <Text style={styles.fieldLabel}>Skin Type</Text>
-                    <View style={styles.fieldValue}>
-                        <Text style={styles.fieldText}>Sensitive</Text>
-                    </View>
-                </View>
-            </View>
-
-            {/* Settings */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Notification Settings</Text>
-
-                <View style={styles.setting}>
-                    <View>
-                        <Text style={styles.settingLabel}>Treatment Reminders</Text>
-                        <Text style={styles.settingDescription}>Get reminders for your treatment schedule</Text>
-                    </View>
-                    <Switch
-                        value={reminderEnabled}
-                        onValueChange={setReminderEnabled}
-                        thumbColor={reminderEnabled ? "#fff" : "#f8f9fa"}
-                        trackColor={{ false: "#e9ecef", true: "#6366f1" }}
-                    />
-                </View>
-            </View>
-
-            {/* Actions */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Account Actions</Text>
-
-                <TouchableOpacity style={[styles.actionButton, styles.primaryAction]}>
-                    <Text style={styles.primaryActionText}>Upgrade to Premium</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.actionButton, styles.secondaryAction]}>
-                    <Text style={styles.secondaryActionText}>Contact Support</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Bottom spacer */}
-            <View style={styles.bottomSpacer} />
-        </ScrollView>
+                {/* Bottom spacer */}
+                <View style={styles.bottomSpacer} />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 

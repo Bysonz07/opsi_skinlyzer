@@ -1,18 +1,18 @@
+import { treatmentAPI } from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
-import React, {useState, useEffect, useCallback} from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Switch,
     Text,
     TouchableOpacity,
-    View,
-    ActivityIndicator,
-    Alert,
-    RefreshControl
+    View
 } from "react-native";
-import { treatmentAPI } from "@/services/api";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 interface Treatment {
     id: string;
     name: string;
@@ -185,7 +185,7 @@ export default function TreatmentScreen() {
     const progress = totalCount > 0 ? completedCount / totalCount : 0;
 
     const getPriorityColor = (priority?: string) => {
-        switch(priority) {
+        switch (priority) {
             case "high": return "#ef4444";
             case "medium": return "#f59e0b";
             case "low": return "#10b981";
@@ -194,7 +194,7 @@ export default function TreatmentScreen() {
     };
 
     const getPriorityIcon = (priority?: string) => {
-        switch(priority) {
+        switch (priority) {
             case "high": return "alert-circle";
             case "medium": return "warning";
             case "low": return "checkmark-circle";
@@ -212,145 +212,147 @@ export default function TreatmentScreen() {
     }
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-        >
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.title}>Treatment Plan</Text>
-                <Text style={styles.subtitle}>Manage your skin care routine</Text>
-            </View>
-
-            {/* Progress Overview */}
-            <View style={styles.progressCard}>
-                <View style={styles.progressHeader}>
-                    <Text style={styles.progressText}>Treatment Progress</Text>
-                    <Text style={styles.progressCount}>{completedCount}/{totalCount}</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["bottom"]}>
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+            >
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>Treatment Plan</Text>
+                    <Text style={styles.subtitle}>Manage your skin care routine</Text>
                 </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+
+                {/* Progress Overview */}
+                <View style={styles.progressCard}>
+                    <View style={styles.progressHeader}>
+                        <Text style={styles.progressText}>Treatment Progress</Text>
+                        <Text style={styles.progressCount}>{completedCount}/{totalCount}</Text>
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+                    </View>
+                    <Text style={styles.progressNote}>
+                        {progress === 1 ? '🎉 All treatments completed!' :
+                            `Keep following your plan${completedCount > 0 ? ` - ${Math.round(progress * 100)}% done` : ''}`}
+                    </Text>
                 </View>
-                <Text style={styles.progressNote}>
-                    {progress === 1 ? '🎉 All treatments completed!' :
-                        `Keep following your plan${completedCount > 0 ? ` - ${Math.round(progress * 100)}% done` : ''}`}
-                </Text>
-            </View>
 
-            {/* Tabs */}
-            <View style={styles.tabs}>
-                {["Active", "Completed", "All"].map((tab) => (
-                    <TouchableOpacity
-                        key={tab}
-                        style={[styles.tab, activeTab === tab && styles.tabActive]}
-                        onPress={() => setActiveTab(tab as any)}
-                    >
-                        <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                            {tab}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
+                {/* Tabs */}
+                <View style={styles.tabs}>
+                    {["Active", "Completed", "All"].map((tab) => (
+                        <TouchableOpacity
+                            key={tab}
+                            style={[styles.tab, activeTab === tab && styles.tabActive]}
+                            onPress={() => setActiveTab(tab as any)}
+                        >
+                            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                                {tab}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
 
-            {/* Treatment List */}
-            <View style={styles.treatments}>
-                {filteredTreatments.length > 0 ? (
-                    filteredTreatments.map((treatment, index) => (
-                        <View key={treatment.id} style={[
-                            styles.treatmentCard,
-                            treatment.completed && styles.treatmentCardCompleted
-                        ]}>
-                            <View style={styles.treatmentHeader}>
-                                <View style={styles.treatmentInfo}>
-                                    {treatment.priority && (
-                                        <Ionicons
-                                            name={getPriorityIcon(treatment.priority)}
-                                            size={16}
-                                            color={getPriorityColor(treatment.priority)}
-                                            style={styles.priorityIcon}
-                                        />
-                                    )}
-                                    <View style={styles.treatmentDetails}>
-                                        <Text style={[
-                                            styles.treatmentName,
-                                            treatment.completed && styles.treatmentNameCompleted
-                                        ]}>
-                                            {treatment.name}
-                                        </Text>
-                                        <Text style={styles.treatmentMeta}>
-                                            {treatment.dosage} • {treatment.frequency}
-                                        </Text>
+                {/* Treatment List */}
+                <View style={styles.treatments}>
+                    {filteredTreatments.length > 0 ? (
+                        filteredTreatments.map((treatment, index) => (
+                            <View key={treatment.id} style={[
+                                styles.treatmentCard,
+                                treatment.completed && styles.treatmentCardCompleted
+                            ]}>
+                                <View style={styles.treatmentHeader}>
+                                    <View style={styles.treatmentInfo}>
+                                        {treatment.priority && (
+                                            <Ionicons
+                                                name={getPriorityIcon(treatment.priority)}
+                                                size={16}
+                                                color={getPriorityColor(treatment.priority)}
+                                                style={styles.priorityIcon}
+                                            />
+                                        )}
+                                        <View style={styles.treatmentDetails}>
+                                            <Text style={[
+                                                styles.treatmentName,
+                                                treatment.completed && styles.treatmentNameCompleted
+                                            ]}>
+                                                {treatment.name}
+                                            </Text>
+                                            <Text style={styles.treatmentMeta}>
+                                                {treatment.dosage} • {treatment.frequency}
+                                            </Text>
+                                        </View>
                                     </View>
+                                    <Switch
+                                        value={treatment.completed}
+                                        onValueChange={() => toggleCompleted(treatment.id, treatment.completed)}
+                                        thumbColor={treatment.completed ? "#fff" : "#f8f9fa"}
+                                        trackColor={{ false: "#e9ecef", true: "#10b981" }}
+                                    />
                                 </View>
-                                <Switch
-                                    value={treatment.completed}
-                                    onValueChange={() => toggleCompleted(treatment.id, treatment.completed)}
-                                    thumbColor={treatment.completed ? "#fff" : "#f8f9fa"}
-                                    trackColor={{ false: "#e9ecef", true: "#10b981" }}
-                                />
-                            </View>
 
-                            {treatment.notes && (
-                                <View style={styles.notes}>
-                                    <Text style={styles.notesText}>{treatment.notes}</Text>
-                                </View>
-                            )}
-
-                            <View style={styles.treatmentFooter}>
-                                <View style={styles.duration}>
-                                    <Ionicons name="time-outline" size={14} color="#666" />
-                                    <Text style={styles.durationText}>{treatment.duration}</Text>
-                                </View>
-                                {treatment.condition && (
-                                    <View style={styles.conditionTag}>
-                                        <Text style={styles.conditionText}>
-                                            {treatment.condition.toUpperCase()}
-                                        </Text>
+                                {treatment.notes && (
+                                    <View style={styles.notes}>
+                                        <Text style={styles.notesText}>{treatment.notes}</Text>
                                     </View>
                                 )}
+
+                                <View style={styles.treatmentFooter}>
+                                    <View style={styles.duration}>
+                                        <Ionicons name="time-outline" size={14} color="#666" />
+                                        <Text style={styles.durationText}>{treatment.duration}</Text>
+                                    </View>
+                                    {treatment.condition && (
+                                        <View style={styles.conditionTag}>
+                                            <Text style={styles.conditionText}>
+                                                {treatment.condition.toUpperCase()}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
                             </View>
+                        ))
+                    ) : (
+                        <View style={styles.emptyState}>
+                            <Ionicons
+                                name={activeTab === "Completed" ? "checkmark-done" : "clipboard-outline"}
+                                size={48}
+                                color="#ccc"
+                            />
+                            <Text style={styles.emptyTitle}>
+                                {activeTab === "Completed" ? "No completed treatments" : "No active treatments"}
+                            </Text>
+                            <Text style={styles.emptyText}>
+                                {activeTab === "Completed"
+                                    ? "Complete some treatments to see them here"
+                                    : "All treatments are completed! 🎉"}
+                            </Text>
                         </View>
-                    ))
-                ) : (
-                    <View style={styles.emptyState}>
-                        <Ionicons
-                            name={activeTab === "Completed" ? "checkmark-done" : "clipboard-outline"}
-                            size={48}
-                            color="#ccc"
-                        />
-                        <Text style={styles.emptyTitle}>
-                            {activeTab === "Completed" ? "No completed treatments" : "No active treatments"}
-                        </Text>
-                        <Text style={styles.emptyText}>
-                            {activeTab === "Completed"
-                                ? "Complete some treatments to see them here"
-                                : "All treatments are completed! 🎉"}
-                        </Text>
-                    </View>
-                )}
-            </View>
-
-            {/* Quick Actions */}
-            <View style={styles.quickActions}>
-                <Text style={styles.actionsTitle}>Quick Actions</Text>
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity style={styles.actionButton}>
-                        <Ionicons name="add-circle" size={20} color="#000" />
-                        <Text style={styles.actionButtonText}>Add Treatment</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
-                        <Ionicons name="notifications" size={20} color="#000" />
-                        <Text style={styles.actionButtonText}>Set Reminder</Text>
-                    </TouchableOpacity>
+                    )}
                 </View>
-            </View>
 
-            <View style={styles.bottomSpacer} />
-        </ScrollView>
+                {/* Quick Actions */}
+                <View style={styles.quickActions}>
+                    <Text style={styles.actionsTitle}>Quick Actions</Text>
+                    <View style={styles.actionButtons}>
+                        <TouchableOpacity style={styles.actionButton}>
+                            <Ionicons name="add-circle" size={20} color="#000" />
+                            <Text style={styles.actionButtonText}>Add Treatment</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.actionButton}>
+                            <Ionicons name="notifications" size={20} color="#000" />
+                            <Text style={styles.actionButtonText}>Set Reminder</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View style={styles.bottomSpacer} />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
